@@ -1,4 +1,4 @@
-use mlab_rs::sklearn;
+use mlab::sklearn;
 use ndarray::{array, Axis};
 
 #[test]

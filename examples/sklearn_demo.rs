@@ -1,5 +1,5 @@
-use mlab_rs::np;
-use mlab_rs::sklearn::{
+use mlab::np;
+use mlab::sklearn::{
     cluster::KMeans,
     ensemble::RandomForestClassifier,
     decomposition::PCA,
@@ -154,8 +154,8 @@ fn main() {
     println!("Classification report: {:?}", classification_report(&y_true, &y_pred));
 
     struct DummyScore;
-    impl mlab_rs::sklearn::model_selection::Score for DummyScore {
-        fn score(&self, _x: &mlab_rs::np::Array2<f64>, _y: &mlab_rs::np::Array1<f64>) -> f64 { 1.0 }
+    impl mlab::sklearn::model_selection::Score for DummyScore {
+        fn score(&self, _x: &mlab::np::Array2<f64>, _y: &mlab::np::Array1<f64>) -> f64 { 1.0 }
     }
     println!("Cross-val score: {:?}", cross_val_score(&DummyScore, &np::array(vec![vec![1.0], vec![2.0], vec![3.0], vec![4.0]]), &np::array(vec![0.0, 0.0, 1.0, 1.0]), 2));
 
