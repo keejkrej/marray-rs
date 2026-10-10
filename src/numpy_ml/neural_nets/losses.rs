@@ -21,6 +21,12 @@ impl SquaredError {
     }
 }
 
+impl Default for SquaredError {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Loss for SquaredError {
     fn loss(&self, y: &Array2<f64>, y_pred: &Array2<f64>) -> f64 {
         let diff = y_pred - y;
@@ -47,6 +53,12 @@ impl CrossEntropy {
     }
 }
 
+impl Default for CrossEntropy {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Loss for CrossEntropy {
     fn loss(&self, y: &Array2<f64>, y_pred: &Array2<f64>) -> f64 {
         let eps = f64::EPSILON;
@@ -70,6 +82,12 @@ pub struct BinaryCrossEntropy;
 impl BinaryCrossEntropy {
     pub fn new() -> Self {
         BinaryCrossEntropy
+    }
+}
+
+impl Default for BinaryCrossEntropy {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -134,6 +152,12 @@ impl VAELoss {
         let d_log_var = (&t_log_var.mapv(|v| v.exp()) - 1.0) / (2.0 * n);
         let d_mean = t_mean / n;
         (dy_pred, d_log_var, d_mean)
+    }
+}
+
+impl Default for VAELoss {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

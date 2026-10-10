@@ -110,12 +110,11 @@ impl Linear {
     }
 
     pub fn flush_gradients(&mut self) {
-        if let Some(ref params) = self.parameters {
-            if let Some(ref mut grads) = self.gradients {
+        if let Some(ref params) = self.parameters
+            && let Some(ref mut grads) = self.gradients {
                 grads.dw = Array2::zeros(params.w.raw_dim());
                 grads.db = Array2::zeros(params.b.raw_dim());
             }
-        }
         self.x_cache.clear();
         self.z_cache.clear();
     }
@@ -258,13 +257,12 @@ impl RNNCell {
     }
 
     pub fn flush_gradients(&mut self) {
-        if let Some(ref params) = self.parameters {
-            if let Some(ref mut grads) = self.gradients {
+        if let Some(ref params) = self.parameters
+            && let Some(ref mut grads) = self.gradients {
                 grads.wax = Array2::zeros(params.wax.raw_dim());
                 grads.waa = Array2::zeros(params.waa.raw_dim());
                 grads.ba = Array2::zeros(params.ba.raw_dim());
             }
-        }
         self.a_cache.clear();
         self.z_cache.clear();
         self.x_cache.clear();
@@ -848,7 +846,7 @@ impl Attention {
 
         let mut scores = q.dot(&k.t()) * scale;
         if let Some(m) = mask {
-            scores = scores + m;
+            scores += m;
         }
 
         let weights = super::utils::softmax(&scores);

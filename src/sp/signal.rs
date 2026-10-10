@@ -49,7 +49,7 @@ pub fn convolve(in1: &Array1<f64>, in2: &Array1<f64>, mode: ConvolveMode) -> Arr
 
 /// Filter data along one dimension with an IIR or FIR filter using Transposed Direct Form II.
 pub fn lfilter(b: &Array1<f64>, a: &Array1<f64>, x: &Array1<f64>) -> Result<Array1<f64>, String> {
-    if a.len() == 0 || b.len() == 0 {
+    if a.is_empty() || b.is_empty() {
         return Err("Filter coefficients a and b must not be empty".to_string());
     }
     let a0 = a[0];
@@ -147,11 +147,10 @@ pub fn find_peaks(
     let mut peaks = Vec::new();
     for i in 1..(n - 1) {
         if x[i] > x[i - 1] && x[i] > x[i + 1] {
-            if let Some(h) = height {
-                if x[i] < h {
+            if let Some(h) = height
+                && x[i] < h {
                     continue;
                 }
-            }
             peaks.push(i);
         }
     }
@@ -165,7 +164,7 @@ pub fn find_peaks(
         for (idx, _h) in peak_heights {
             let mut ok = true;
             for &k_idx in &kept {
-                let diff = if idx > k_idx { idx - k_idx } else { k_idx - idx };
+                let diff = idx.abs_diff(k_idx);
                 if diff < dist {
                     ok = false;
                     break;
@@ -272,7 +271,7 @@ fn solve_upper_triangular(u: &[Vec<f64>], b: &[f64]) -> Vec<f64> {
 /// Solve Ax = b via LU decomposition with partial pivoting.
 fn solve_linear_system(a_in: &[Vec<f64>], b_in: &[f64]) -> Vec<f64> {
     let n = b_in.len();
-    let mut a: Vec<Vec<f64>> = a_in.iter().map(|row| row.clone()).collect();
+    let mut a: Vec<Vec<f64>> = a_in.iter().cloned().collect();
     let mut b: Vec<f64> = b_in.to_vec();
 
     for k in 0..n {
@@ -791,7 +790,7 @@ pub fn cheby1(n: usize, rp: f64, wn: f64, btype: &str) -> (Vec<f64>, Vec<f64>, f
         let zeros = vec![(-1.0, 0.0); n];
         let num_unscaled = poly_from_roots(&zeros);
         // DC gain for Chebyshev Type I: 1 / sqrt(1 + eps^2) for even n, 1 for odd n
-        let gain_factor = if n % 2 == 0 {
+        let gain_factor = if n.is_multiple_of(2) {
             (1.0 + eps * eps).sqrt()
         } else {
             1.0
@@ -804,7 +803,7 @@ pub fn cheby1(n: usize, rp: f64, wn: f64, btype: &str) -> (Vec<f64>, Vec<f64>, f
     } else {
         let zeros = vec![(1.0, 0.0); n];
         let num_unscaled = poly_from_roots(&zeros);
-        let gain_factor = if n % 2 == 0 {
+        let gain_factor = if n.is_multiple_of(2) {
             (1.0 + eps * eps).sqrt()
         } else {
             1.0
@@ -935,7 +934,7 @@ pub fn fftconvolve(a: &[f64], b: &[f64], mode: &str) -> Vec<f64> {
 
     // Multiply in frequency domain
     for i in 0..fft_len {
-        a_pad[i] = a_pad[i] * b_pad[i];
+        a_pad[i] *= b_pad[i];
     }
 
     // Inverse FFT
@@ -1149,7 +1148,7 @@ pub fn medfilt(x: &[f64], kernel_size: usize) -> Vec<f64> {
     let half = kernel_size / 2;
     let mut result = vec![0.0; n];
     for i in 0..n {
-        let lo = if i >= half { i - half } else { 0 };
+        let lo = i.saturating_sub(half);
         let hi = (i + half + 1).min(n);
         let mut window: Vec<f64> = x[lo..hi].to_vec();
         window.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -1190,7 +1189,7 @@ pub fn hilbert(x: &[f64]) -> Vec<(f64, f64)> {
     let n = x.len();
     let spectrum = crate::sp::fft::fft_real(&Array1::from_vec(x.to_vec()));
     let mut h = vec![rustfft::num_complex::Complex::new(0.0, 0.0); n];
-    if n % 2 == 0 {
+    if n.is_multiple_of(2) {
         h[0] = rustfft::num_complex::Complex::new(1.0, 0.0);
         for i in 1..n / 2 {
             h[i] = rustfft::num_complex::Complex::new(2.0, 0.0);
@@ -1198,13 +1197,13 @@ pub fn hilbert(x: &[f64]) -> Vec<(f64, f64)> {
         h[n / 2] = rustfft::num_complex::Complex::new(1.0, 0.0);
     } else {
         h[0] = rustfft::num_complex::Complex::new(1.0, 0.0);
-        for i in 1..(n + 1) / 2 {
+        for i in 1..n.div_ceil(2) {
             h[i] = rustfft::num_complex::Complex::new(2.0, 0.0);
         }
     }
     let mut analytic_spectrum = spectrum;
     for i in 0..n {
-        analytic_spectrum[i] = analytic_spectrum[i] * h[i];
+        analytic_spectrum[i] *= h[i];
     }
     let result = crate::sp::fft::ifft(&analytic_spectrum);
     result.iter().map(|c| (c.re, c.im)).collect()

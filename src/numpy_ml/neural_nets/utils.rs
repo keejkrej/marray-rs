@@ -5,7 +5,7 @@ use rand::seq::SliceRandom;
 ///
 /// Returns (indices_batches, n_batches).
 pub fn minibatch_indices(n_samples: usize, batch_size: usize, shuffle: bool) -> (Vec<Vec<usize>>, usize) {
-    let n_batches = (n_samples + batch_size - 1) / batch_size;
+    let n_batches = n_samples.div_ceil(batch_size);
     let mut indices: Vec<usize> = (0..n_samples).collect();
 
     if shuffle {

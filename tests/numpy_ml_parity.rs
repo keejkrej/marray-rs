@@ -1,17 +1,17 @@
-use mlab::numpy_ml::bandits::{BanditPolicy, BernoulliBandit, EpsilonGreedy, ThompsonSampling, UCB1};
-use mlab::numpy_ml::factorization::{NMF, VanillaALS};
-use mlab::numpy_ml::gmm::GMM;
-use mlab::numpy_ml::hmm::MultinomialHMM;
-use mlab::numpy_ml::lda::LDA;
-use mlab::numpy_ml::linear_models::{LinearRegression, LogisticRegression, RidgeRegression};
-use mlab::numpy_ml::neural_nets::activations::{Activation, ReLU, Sigmoid, Tanh};
-use mlab::numpy_ml::neural_nets::layers::{BatchNorm, Conv1D, Dropout, Linear, MultiHeadAttention};
-use mlab::numpy_ml::neural_nets::losses::{CrossEntropy, Loss, SquaredError};
-use mlab::numpy_ml::neural_nets::models::BernoulliVAE;
-use mlab::numpy_ml::ngram::{AdditiveNGram, MLENGram};
-use mlab::numpy_ml::nonparametric::{GPRegression, KernelRegression, KNN};
-use mlab::numpy_ml::rl_models::{Environment, QLearningAgent, SARSAAgent};
-use mlab::numpy_ml::trees::{DecisionTree, GradientBoostedDecisionTree, RandomForest};
+use marray::numpy_ml::bandits::{BanditPolicy, BernoulliBandit, EpsilonGreedy, ThompsonSampling, UCB1};
+use marray::numpy_ml::factorization::{NMF, VanillaALS};
+use marray::numpy_ml::gmm::GMM;
+use marray::numpy_ml::hmm::MultinomialHMM;
+use marray::numpy_ml::lda::LDA;
+use marray::numpy_ml::linear_models::{LinearRegression, LogisticRegression, RidgeRegression};
+use marray::numpy_ml::neural_nets::activations::{Activation, ReLU, Sigmoid, Tanh};
+use marray::numpy_ml::neural_nets::layers::{BatchNorm, Conv1D, Dropout, Linear, MultiHeadAttention};
+use marray::numpy_ml::neural_nets::losses::{CrossEntropy, Loss, SquaredError};
+use marray::numpy_ml::neural_nets::models::BernoulliVAE;
+use marray::numpy_ml::ngram::{AdditiveNGram, MLENGram};
+use marray::numpy_ml::nonparametric::{GPRegression, KernelRegression, KNN};
+use marray::numpy_ml::rl_models::{Environment, QLearningAgent, SARSAAgent};
+use marray::numpy_ml::trees::{DecisionTree, GradientBoostedDecisionTree, RandomForest};
 use ndarray::{array, Array2, Array3};
 
 struct SimpleLineEnv {

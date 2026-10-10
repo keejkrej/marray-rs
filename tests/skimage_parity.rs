@@ -1,4 +1,4 @@
-use mlab::skimage;
+use marray::skimage;
 use ndarray::{Array2, Array3};
 
 #[test]

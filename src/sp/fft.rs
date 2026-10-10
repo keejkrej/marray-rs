@@ -21,7 +21,7 @@ pub fn ifft(arr: &Array1<Complex<f64>>) -> Array1<Complex<f64>> {
     fft_op.process(&mut buffer);
     let scale = 1.0 / (n as f64);
     for val in &mut buffer {
-        *val = *val * scale;
+        *val *= scale;
     }
     Array1::from_vec(buffer)
 }
@@ -126,7 +126,7 @@ pub fn irfft(spectrum: &[(f64, f64)], n: usize) -> Vec<f64> {
 pub fn fftfreq(n: usize, d: f64) -> Vec<f64> {
     let mut freqs = Vec::with_capacity(n);
     let scale = 1.0 / (d * n as f64);
-    let mid = (n + 1) / 2;
+    let mid = n.div_ceil(2);
     for i in 0..mid {
         freqs.push(i as f64 * scale);
     }
@@ -149,7 +149,7 @@ pub fn rfftfreq(n: usize, d: f64) -> Vec<f64> {
 /// For odd n, swap with the middle element going to the end.
 pub fn fftshift<T: Clone>(x: &[T]) -> Vec<T> {
     let n = x.len();
-    let mid = (n + 1) / 2;
+    let mid = n.div_ceil(2);
     let mut result = Vec::with_capacity(n);
     result.extend_from_slice(&x[mid..]);
     result.extend_from_slice(&x[..mid]);
@@ -191,8 +191,8 @@ pub fn rfft2(x: &Array2<f64>) -> Array2<(f64, f64)> {
         }
     }
 
-    let out = Array2::from_shape_fn((nrows, out_cols), |(r, c)| result[r][c]);
-    out
+    
+    Array2::from_shape_fn((nrows, out_cols), |(r, c)| result[r][c])
 }
 
 /// 2D Inverse Real FFT.

@@ -22,6 +22,12 @@ impl Sigmoid {
     }
 }
 
+impl Default for Sigmoid {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Activation for Sigmoid {
     fn fn_(&self, z: &Array2<f64>) -> Array2<f64> {
         z.mapv(|v| 1.0 / (1.0 + (-v).exp()))
@@ -48,6 +54,12 @@ pub struct ReLU;
 impl ReLU {
     pub fn new() -> Self {
         ReLU
+    }
+}
+
+impl Default for ReLU {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -168,6 +180,12 @@ impl Tanh {
     }
 }
 
+impl Default for Tanh {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Activation for Tanh {
     fn fn_(&self, z: &Array2<f64>) -> Array2<f64> {
         z.mapv(|v| v.tanh())
@@ -232,6 +250,12 @@ impl Identity {
     }
 }
 
+impl Default for Identity {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Activation for Identity {
     fn fn_(&self, z: &Array2<f64>) -> Array2<f64> {
         z.clone()
@@ -288,6 +312,12 @@ impl Exponential {
     }
 }
 
+impl Default for Exponential {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Activation for Exponential {
     fn fn_(&self, z: &Array2<f64>) -> Array2<f64> {
         z.mapv(|v| v.exp())
@@ -315,9 +345,15 @@ pub struct SELU {
 impl SELU {
     pub fn new() -> Self {
         SELU {
-            alpha: 1.6732632423543772848170429916717,
-            scale: 1.0507009873554804934193349852946,
+            alpha: 1.673_263_242_354_377_2,
+            scale: 1.050_700_987_355_480_5,
         }
+    }
+}
+
+impl Default for SELU {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -362,13 +398,19 @@ impl HardSigmoid {
     }
 }
 
+impl Default for HardSigmoid {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Activation for HardSigmoid {
     fn fn_(&self, z: &Array2<f64>) -> Array2<f64> {
         z.mapv(|v| (0.2 * v + 0.5).max(0.0).min(1.0))
     }
 
     fn grad(&self, x: &Array2<f64>) -> Array2<f64> {
-        x.mapv(|v| if v >= -2.5 && v <= 2.5 { 0.2 } else { 0.0 })
+        x.mapv(|v| if (-2.5..=2.5).contains(&v) { 0.2 } else { 0.0 })
     }
 
     fn grad2(&self, x: &Array2<f64>) -> Array2<f64> {
@@ -386,6 +428,12 @@ pub struct SoftPlus;
 impl SoftPlus {
     pub fn new() -> Self {
         SoftPlus
+    }
+}
+
+impl Default for SoftPlus {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -23,6 +23,12 @@ impl StandardScalerWrapper {
     }
 }
 
+impl Default for StandardScalerWrapper {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Transformer for StandardScalerWrapper {
     fn fit(&mut self, x: &Array2<f64>) {
         self.scaler.fit(x);
@@ -46,6 +52,12 @@ impl MinMaxScalerWrapper {
         Self {
             scaler: MinMaxScaler::new(),
         }
+    }
+}
+
+impl Default for MinMaxScalerWrapper {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

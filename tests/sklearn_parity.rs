@@ -1,4 +1,4 @@
-use mlab::sklearn;
+use marray::sklearn;
 use ndarray::{array, Axis};
 
 #[test]

@@ -9,7 +9,7 @@ pub fn equalize_hist(image: &Array2<u8>) -> Array2<u8> {
             hist[image[[y, x]] as usize] += 1;
         }
     }
-    let total = (height * width) as usize;
+    let total = height * width;
     let mut cdf = 0usize;
     let mut mapping = [0u8; 256];
     for (i, count) in hist.iter().enumerate() {
@@ -56,8 +56,8 @@ pub fn rescale_intensity(image: &Array2<f64>, in_range: (f64, f64), out_range: (
 pub fn equalize_adapthist(image: &Array2<f64>, clip_limit: f64, grid_size: (usize, usize)) -> Array2<f64> {
     let (height, width) = image.dim();
     let (grid_rows, grid_cols) = grid_size;
-    let tile_h = (height + grid_rows - 1) / grid_rows;
-    let tile_w = (width + grid_cols - 1) / grid_cols;
+    let tile_h = height.div_ceil(grid_rows);
+    let tile_w = width.div_ceil(grid_cols);
 
     // find global min/max for normalization
     let (gmin, gmax) = image

@@ -1,8 +1,13 @@
-# mlab
+# marray
 
-A high-performance, pure-Rust scientific computing and machine learning ecosystem mirroring the Python scientific stack: **NumPy**, **SciPy**, **scikit-learn**, **scikit-image**, and **numpy-ml**.
+[![Crates.io](https://img.shields.io/crates/v/marray.svg)](https://crates.io/crates/marray)
+[![Documentation](https://docs.rs/marray/badge.svg)](https://docs.rs/marray)
+[![CI](https://github.com/keejkrej/marray-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/keejkrej/marray-rs/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
 
-Written in Rust 2024 edition, `mlab` provides familiar Pythonic APIs, zero external runtime baggage beyond core linear algebra/random primitives, and full type safety and memory safety.
+A comprehensive, high-performance, pure-Rust scientific computing and machine learning ecosystem mirroring the Python scientific stack: **NumPy**, **SciPy**, **scikit-learn**, **scikit-image**, and **numpy-ml**.
+
+Written in Rust 2024 edition, `marray` provides familiar Pythonic APIs, zero external runtime baggage beyond core linear algebra/random primitives, and full type safety and memory safety.
 
 ---
 
@@ -10,21 +15,21 @@ Written in Rust 2024 edition, `mlab` provides familiar Pythonic APIs, zero exter
 
 | Module | Description | Python Equivalent |
 |---|---|---|
-| [`np`](#np-numpy-equivalent) | N-dimensional arrays, slicing, linear algebra, FFT, statistical routines, random sampling | `numpy` |
-| [`sp`](#sp-scipy-equivalent) | Numerical integration, sparse matrices, spatial algorithms, signal filtering, special functions, optimization | `scipy` |
-| [`sklearn`](#sklearn-scikit-learn-equivalent) | Classical machine learning estimators (trees, ensembles, SVM, neural nets, clustering, PCA, GP, t-SNE) | `scikit-learn` |
-| [`skimage`](#skimage-scikit-image-equivalent) | Image processing algorithms (filters, edge detection, morphology, color spaces, transformations) | `scikit-image` |
-| [`numpy_ml`](#numpy_ml-numpy-ml-equivalent) | Deep learning from scratch (Conv1D/2D, BatchNorm, MHA, VAE, Word2Vec), multi-armed bandits, RL agents | `numpy-ml` |
+| [`np`](#1-np-numpy-equivalent) | N-dimensional arrays, slicing, linear algebra, FFT, statistical routines, random sampling | `numpy` |
+| [`sp`](#2-sp-scipy-equivalent) | Numerical integration, sparse matrices, spatial algorithms, signal filtering, special functions, optimization | `scipy` |
+| [`sklearn`](#3-sklearn-scikit-learn-equivalent) | Classical machine learning estimators (trees, ensembles, SVM, neural nets, clustering, PCA, GP, t-SNE) | `scikit-learn` |
+| [`skimage`](#4-skimage-scikit-image-equivalent) | Image processing algorithms (filters, edge detection, morphology, color spaces, transformations) | `scikit-image` |
+| [`numpy_ml`](#5-numpy_ml-numpy-ml-equivalent) | Deep learning from scratch (Conv1D/2D, BatchNorm, MHA, VAE, Word2Vec), multi-armed bandits, RL agents | `numpy-ml` |
 
 ---
 
 ## Installation
 
-Add `mlab` to your `Cargo.toml`:
+Add `marray` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-mlab = { path = "." } # or from crates.io / git
+marray = "1.0.0"
 ```
 
 ### Feature Flags
@@ -33,7 +38,7 @@ All features are enabled by default (`default = ["np", "sp", "sklearn", "skimage
 
 ```toml
 [dependencies]
-mlab = { version = "0.1", default-features = false, features = ["np", "sp", "sklearn"] }
+marray = { version = "1.0.0", default-features = false, features = ["np", "sp", "sklearn"] }
 ```
 
 ---
@@ -43,7 +48,7 @@ mlab = { version = "0.1", default-features = false, features = ["np", "sp", "skl
 ### 1. `np` (NumPy Equivalent)
 
 ```rust
-use mlab::np;
+use marray::np;
 
 // Create arrays
 let a = np::array(vec![1.0, 2.0, 3.0]);
@@ -59,7 +64,7 @@ let clipped = np::clip(&a, 1.5, 2.5);
 ### 2. `sp` (SciPy Equivalent)
 
 ```rust
-use mlab::sp;
+use marray::sp;
 use ndarray::Array1;
 
 // Numerical integration (adaptive Simpson quadrature)
@@ -88,10 +93,10 @@ let norm_cdf = sp::special::ndtr(0.0);           // Normal CDF (0.5)
 ### 3. `sklearn` (Scikit-Learn Equivalent)
 
 ```rust
-use mlab::sklearn::manifold::TSNE;
-use mlab::sklearn::mixture::GaussianMixture;
-use mlab::sklearn::gaussian_process::GaussianProcessRegressor;
-use mlab::sklearn::feature_selection::SelectKBest;
+use marray::sklearn::manifold::TSNE;
+use marray::sklearn::mixture::GaussianMixture;
+use marray::sklearn::gaussian_process::GaussianProcessRegressor;
+use marray::sklearn::feature_selection::SelectKBest;
 use ndarray::array;
 
 // Gaussian Mixture Model
@@ -108,7 +113,7 @@ let embedded = tsne.fit_transform(&x).unwrap();
 ### 4. `skimage` (Scikit-Image Equivalent)
 
 ```rust
-use mlab::skimage::filters::{gaussian, threshold_otsu};
+use marray::skimage::filters::{gaussian, threshold_otsu};
 use ndarray::Array2;
 
 let img = Array2::<f64>::zeros((64, 64));
@@ -118,11 +123,11 @@ let smoothed = gaussian(&img, 1.5);
 ### 5. `numpy_ml` (Numpy-ML Equivalent)
 
 ```rust
-use mlab::numpy_ml::neural_nets::layers::{BatchNorm, Conv1D, Linear, MultiHeadAttention};
-use mlab::numpy_ml::neural_nets::models::BernoulliVAE;
-use mlab::numpy_ml::trees::RandomForest;
-use mlab::numpy_ml::bandits::{BernoulliBandit, EpsilonGreedy, BanditPolicy};
-use mlab::numpy_ml::rl_models::{QLearningAgent, SARSAAgent};
+use marray::numpy_ml::neural_nets::layers::{BatchNorm, Conv1D, Linear, MultiHeadAttention};
+use marray::numpy_ml::neural_nets::models::BernoulliVAE;
+use marray::numpy_ml::trees::RandomForest;
+use marray::numpy_ml::bandits::{BernoulliBandit, EpsilonGreedy, BanditPolicy};
+use marray::numpy_ml::rl_models::{QLearningAgent, SARSAAgent};
 
 // Multi-Head Attention layer
 let mut mha = MultiHeadAttention::new(64, 8); // d_model=64, n_heads=8
@@ -177,19 +182,10 @@ cargo test --release
 
 ---
 
-## Roadmap & Implementation Status
-
-All 6 core development phases are completed:
-
-- [x] **Phase 1: Foundational Additions**: Math functions, array operations, linear algebra solvers, basic statistics, FFT, random distributions.
-- [x] **Phase 2: High-Value ML Components**: Decision trees, Random Forests, Gradient Boosted Trees, K-Means, PCA, SVR, MLPClassifier/Regressor.
-- [x] **Phase 3: Signal, Interpolation, & Image Analysis**: IIR/FIR filter design (Butterworth, Chebyshev), STFT/Welch, 1D/2D interpolation, image morphology, and restoration.
-- [x] **Phase 4: Numpy-ML Completion**: Deep neural net layers (Conv1D/2D, Pooling, BatchNorm, Dropout, Attention, Multi-Head Attention, GRU), models (BernoulliVAE, Word2Vec), Bandits, and RL agents.
-- [x] **Phase 5: Advanced Scientific & Specialized ML**: Numerical integration (`quad`, `solve_ivp`, `odeint`), sparse matrices (`CSRMatrix`, `spsolve`, `eigsh`), spatial (`KDTree`, `Delaunay`, `Voronoi`, `ConvexHull`), manifold (`TSNE`, `Isomap`), GMM, Gaussian Processes, and advanced special functions.
-- [x] **Phase 6: Optimization, Clustering, & Statistical Completeness**: Multivariate optimization (Nelder-Mead downhill simplex, BFGS quasi-Newton), 1D root finding (`brentq`, `newton`), hierarchical clustering (`AgglomerativeClustering` with Ward/complete/average/single linkage), `KNeighborsRegressor`, `RandomizedSearchCV`, `chi2_contingency`, and 1D `wasserstein_distance`.
-
----
-
 ## License
 
-Dual-licensed under MIT or Apache 2.0.
+Dual-licensed under either:
+- MIT License ([LICENSE-MIT](LICENSE-MIT))
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+
+at your option.

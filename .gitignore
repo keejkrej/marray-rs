@@ -1,1 +1,6 @@
 /target
+.venv
+.plans
+.scratch
+*.pyc
+__pycache__

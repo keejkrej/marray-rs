@@ -63,7 +63,7 @@ fn one_hot(y: &Array1<f64>, n_classes: usize) -> Array2<f64> {
 }
 
 fn minibatch_indices(n_samples: usize, batch_size: usize) -> Vec<Vec<usize>> {
-    let n_batches = (n_samples + batch_size - 1) / batch_size;
+    let n_batches = n_samples.div_ceil(batch_size);
     let mut indices: Vec<usize> = (0..n_samples).collect();
     let mut rng = rand::thread_rng();
     indices.shuffle(&mut rng);

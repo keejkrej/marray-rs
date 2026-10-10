@@ -1,4 +1,4 @@
-use mlab::{np, sp};
+use marray::{np, sp};
 
 fn main() {
     println!("--- SciPy Demo ---");

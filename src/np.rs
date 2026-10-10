@@ -467,7 +467,7 @@ where
     T: Clone,
 {
     let mut out = Vec::with_capacity(arr.len() * n);
-    for value in arr.iter().cloned() {
+    for value in arr {
         for _ in 0..n {
             out.push(value.clone());
         }
@@ -664,7 +664,7 @@ pub fn diag(arr: &Array2<f64>, k: i32) -> Array1<f64> {
 /// Create a two-dimensional array with the flattened input as a diagonal.
 pub fn diagflat(v: &Array1<f64>, k: i32) -> Array2<f64> {
     let n = v.len();
-    let offset = k.abs() as usize;
+    let offset = k.unsigned_abs() as usize;
     let size = n + offset;
     let mut out = Array2::zeros((size, size));
     for (idx, &val) in v.iter().enumerate() {

@@ -1,7 +1,23 @@
 [package]
-name = "mlab"
-version = "0.1.0"
+name = "marray"
+version = "1.0.0"
 edition = "2024"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+description = "Pure-Rust scientific computing and machine learning library with Pythonic NumPy, SciPy, and scikit APIs"
+repository = "https://github.com/keejkrej/marray-rs"
+documentation = "https://docs.rs/marray"
+keywords = ["numpy", "scipy", "scikit-learn", "scikit-image", "machine-learning"]
+categories = ["science", "mathematics", "algorithms"]
+include = [
+    "/src/**/*",
+    "/Cargo.toml",
+    "/README.md",
+    "/LICENSE-MIT",
+    "/LICENSE-APACHE",
+    "/tests/**/*",
+    "/examples/**/*",
+]
 
 [dependencies]
 ndarray = { version = "0.16.1", features = ["serde"] }
@@ -24,4 +40,3 @@ numpy_ml = []
 
 [dev-dependencies]
 serde_json = "1.0"
-

@@ -1,4 +1,4 @@
-use mlab::sp;
+use marray::sp;
 use ndarray::{array, Array1, Array2};
 use std::f64::consts::PI;
 

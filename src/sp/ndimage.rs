@@ -81,9 +81,9 @@ pub fn uniform_filter(input: &Array2<f64>, size: usize) -> Array2<f64> {
     let half = size / 2;
     for i in 0..rows {
         for j in 0..cols {
-            let r_start = if i >= half { i - half } else { 0 };
+            let r_start = i.saturating_sub(half);
             let r_end = (i + half + 1).min(rows);
-            let c_start = if j >= half { j - half } else { 0 };
+            let c_start = j.saturating_sub(half);
             let c_end = (j + half + 1).min(cols);
             let mut sum = 0.0;
             let mut count = 0;
@@ -108,9 +108,9 @@ pub fn median_filter(input: &Array2<f64>, size: usize) -> Array2<f64> {
     let half = size / 2;
     for i in 0..rows {
         for j in 0..cols {
-            let r_start = if i >= half { i - half } else { 0 };
+            let r_start = i.saturating_sub(half);
             let r_end = (i + half + 1).min(rows);
-            let c_start = if j >= half { j - half } else { 0 };
+            let c_start = j.saturating_sub(half);
             let c_end = (j + half + 1).min(cols);
             let mut vals = Vec::new();
             for r in r_start..r_end {
@@ -134,9 +134,9 @@ pub fn maximum_filter(input: &Array2<f64>, size: usize) -> Array2<f64> {
     let half = size / 2;
     for i in 0..rows {
         for j in 0..cols {
-            let r_start = if i >= half { i - half } else { 0 };
+            let r_start = i.saturating_sub(half);
             let r_end = (i + half + 1).min(rows);
-            let c_start = if j >= half { j - half } else { 0 };
+            let c_start = j.saturating_sub(half);
             let c_end = (j + half + 1).min(cols);
             let mut max_val = f64::NEG_INFINITY;
             for r in r_start..r_end {
@@ -161,9 +161,9 @@ pub fn minimum_filter(input: &Array2<f64>, size: usize) -> Array2<f64> {
     let half = size / 2;
     for i in 0..rows {
         for j in 0..cols {
-            let r_start = if i >= half { i - half } else { 0 };
+            let r_start = i.saturating_sub(half);
             let r_end = (i + half + 1).min(rows);
-            let c_start = if j >= half { j - half } else { 0 };
+            let c_start = j.saturating_sub(half);
             let c_end = (j + half + 1).min(cols);
             let mut min_val = f64::INFINITY;
             for r in r_start..r_end {
