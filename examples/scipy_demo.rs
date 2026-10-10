@@ -1,4 +1,4 @@
-use mlab_rs::{np, sp};
+use mlab::{np, sp};
 
 fn main() {
     println!("--- SciPy Demo ---");

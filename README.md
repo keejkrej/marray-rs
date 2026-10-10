@@ -1,8 +1,8 @@
-# mlab-rs
+# mlab
 
 A high-performance, pure-Rust scientific computing and machine learning ecosystem mirroring the Python scientific stack: **NumPy**, **SciPy**, **scikit-learn**, **scikit-image**, and **numpy-ml**.
 
-Written in Rust 2024 edition, `mlab-rs` provides familiar Pythonic APIs, zero external runtime baggage beyond core linear algebra/random primitives, and full type safety and memory safety.
+Written in Rust 2024 edition, `mlab` provides familiar Pythonic APIs, zero external runtime baggage beyond core linear algebra/random primitives, and full type safety and memory safety.
 
 ---
 
@@ -20,11 +20,11 @@ Written in Rust 2024 edition, `mlab-rs` provides familiar Pythonic APIs, zero ex
 
 ## Installation
 
-Add `mlab_rs` to your `Cargo.toml`:
+Add `mlab` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-mlab_rs = { path = "." } # or from crates.io / git
+mlab = { path = "." } # or from crates.io / git
 ```
 
 ### Feature Flags
@@ -33,7 +33,7 @@ All features are enabled by default (`default = ["np", "sp", "sklearn", "skimage
 
 ```toml
 [dependencies]
-mlab_rs = { version = "0.1", default-features = false, features = ["np", "sp", "sklearn"] }
+mlab = { version = "0.1", default-features = false, features = ["np", "sp", "sklearn"] }
 ```
 
 ---
@@ -43,7 +43,7 @@ mlab_rs = { version = "0.1", default-features = false, features = ["np", "sp", "
 ### 1. `np` (NumPy Equivalent)
 
 ```rust
-use mlab_rs::np;
+use mlab::np;
 
 // Create arrays
 let a = np::array(vec![1.0, 2.0, 3.0]);
@@ -59,7 +59,7 @@ let clipped = np::clip(&a, 1.5, 2.5);
 ### 2. `sp` (SciPy Equivalent)
 
 ```rust
-use mlab_rs::sp;
+use mlab::sp;
 use ndarray::Array1;
 
 // Numerical integration (adaptive Simpson quadrature)
@@ -88,10 +88,10 @@ let norm_cdf = sp::special::ndtr(0.0);           // Normal CDF (0.5)
 ### 3. `sklearn` (Scikit-Learn Equivalent)
 
 ```rust
-use mlab_rs::sklearn::manifold::TSNE;
-use mlab_rs::sklearn::mixture::GaussianMixture;
-use mlab_rs::sklearn::gaussian_process::GaussianProcessRegressor;
-use mlab_rs::sklearn::feature_selection::SelectKBest;
+use mlab::sklearn::manifold::TSNE;
+use mlab::sklearn::mixture::GaussianMixture;
+use mlab::sklearn::gaussian_process::GaussianProcessRegressor;
+use mlab::sklearn::feature_selection::SelectKBest;
 use ndarray::array;
 
 // Gaussian Mixture Model
@@ -108,7 +108,7 @@ let embedded = tsne.fit_transform(&x).unwrap();
 ### 4. `skimage` (Scikit-Image Equivalent)
 
 ```rust
-use mlab_rs::skimage::filters::{gaussian, threshold_otsu};
+use mlab::skimage::filters::{gaussian, threshold_otsu};
 use ndarray::Array2;
 
 let img = Array2::<f64>::zeros((64, 64));
@@ -118,11 +118,11 @@ let smoothed = gaussian(&img, 1.5);
 ### 5. `numpy_ml` (Numpy-ML Equivalent)
 
 ```rust
-use mlab_rs::numpy_ml::neural_nets::layers::{BatchNorm, Conv1D, Linear, MultiHeadAttention};
-use mlab_rs::numpy_ml::neural_nets::models::BernoulliVAE;
-use mlab_rs::numpy_ml::trees::RandomForest;
-use mlab_rs::numpy_ml::bandits::{BernoulliBandit, EpsilonGreedy, BanditPolicy};
-use mlab_rs::numpy_ml::rl_models::{QLearningAgent, SARSAAgent};
+use mlab::numpy_ml::neural_nets::layers::{BatchNorm, Conv1D, Linear, MultiHeadAttention};
+use mlab::numpy_ml::neural_nets::models::BernoulliVAE;
+use mlab::numpy_ml::trees::RandomForest;
+use mlab::numpy_ml::bandits::{BernoulliBandit, EpsilonGreedy, BanditPolicy};
+use mlab::numpy_ml::rl_models::{QLearningAgent, SARSAAgent};
 
 // Multi-Head Attention layer
 let mut mha = MultiHeadAttention::new(64, 8); // d_model=64, n_heads=8

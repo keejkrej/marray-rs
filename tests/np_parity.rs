@@ -1,4 +1,4 @@
-use mlab_rs::np;
+use mlab::np;
 use ndarray::{array, Array1, Array2};
 
 #[test]

@@ -1,4 +1,4 @@
-//! # mlab-rs
+//! # mlab
 //!
 //! A comprehensive, high-performance, pure-Rust scientific computing and machine learning library
 //! providing familiar Pythonic APIs inspired by **NumPy**, **SciPy**, **scikit-learn**, **scikit-image**,

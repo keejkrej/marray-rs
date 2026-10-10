@@ -604,7 +604,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mlab_rs"
+name = "mlab"
 version = "0.1.0"
 dependencies = [
  "image",
