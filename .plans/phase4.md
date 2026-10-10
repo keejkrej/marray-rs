@@ -4,55 +4,55 @@ Fill remaining gaps in the numpy_ml module.
 
 ## neural_nets.layers -- missing layer types
 
-- [ ] `Conv1D` -- 1D convolutional layer (forward + backward)
-- [ ] `Conv2D` -- 2D convolutional layer (forward + backward)
-- [ ] `MaxPool1D` / `AvgPool1D` -- 1D pooling layers
-- [ ] `MaxPool2D` / `AvgPool2D` -- 2D pooling layers
-- [ ] `BatchNorm` -- batch normalization layer
-- [ ] `Dropout` -- dropout regularization layer
-- [ ] `GRU` -- gated recurrent unit cell + layer
-- [ ] `Attention` -- scaled dot-product attention
-- [ ] `MultiHeadAttention` -- multi-headed attention
-- [ ] `Embedding` -- embedding layer
+- [x] `Conv1D` -- 1D convolutional layer (forward + backward)
+- [x] `Conv2D` -- 2D convolutional layer (forward + backward)
+- [x] `MaxPool1D` / `AvgPool1D` -- 1D pooling layers
+- [x] `MaxPool2D` / `AvgPool2D` -- 2D pooling layers
+- [x] `BatchNorm` -- batch normalization layer
+- [x] `Dropout` -- dropout regularization layer
+- [x] `GRU` -- gated recurrent unit cell + layer
+- [x] `Attention` -- scaled dot-product attention
+- [x] `MultiHeadAttention` -- multi-headed attention
+- [x] `Embedding` -- embedding layer
 
 ## neural_nets.models -- complete models
 
-- [ ] `VAE` -- variational autoencoder
-- [ ] `Word2Vec` -- word2vec (CBOW / skip-gram)
+- [x] `VAE` -- variational autoencoder
+- [x] `Word2Vec` -- word2vec (CBOW / skip-gram)
 
 ## trees -- decision tree module
 
-- [ ] `DecisionTree` -- numpy_ml decision tree (CART)
-- [ ] `GradientBoostedDecisionTree` -- gradient boosted trees
-- [ ] `RandomForest` -- random forest ensemble
-- [ ] Loss functions for trees (MSE, cross-entropy)
+- [x] `DecisionTree` -- numpy_ml decision tree (CART)
+- [x] `GradientBoostedDecisionTree` -- gradient boosted trees
+- [x] `RandomForest` -- random forest ensemble
+- [x] Loss functions for trees (MSE, cross-entropy)
 
 ## ngram -- additional smoothing
 
-- [ ] `KneserNeyNGram` -- Kneser-Ney smoothing
+- [x] `KneserNeyNGram` -- Kneser-Ney smoothing
 
 ## hmm -- additional HMM types
 
-- [ ] `GaussianHMM` -- HMM with Gaussian emissions
+- [x] `GaussianHMM` -- HMM with Gaussian emissions
 
 ## bandits -- additional policies
 
-- [ ] `SoftmaxPolicy` -- softmax/boltzmann exploration
+- [x] `SoftmaxPolicy` -- softmax/boltzmann exploration
 
 ## rl_models -- additional agents
 
-- [ ] `SARSAAgent` -- SARSA agent
+- [x] `SARSAAgent` -- SARSA agent
 
 ## utils.kernels -- additional kernels
 
-- [ ] `MaternKernel` -- Matérn kernel
-- [ ] `RationalQuadraticKernel` -- rational quadratic kernel
+- [x] `MaternKernel` -- Matérn kernel
+- [x] `RationalQuadraticKernel` -- rational quadratic kernel
 
 ## linear_models -- additional models
 
-- [ ] `RidgeRegression` -- numpy_ml ridge regression
-- [ ] `LogisticRegression` -- numpy_ml logistic regression
+- [x] `RidgeRegression` -- numpy_ml ridge regression
+- [x] `LogisticRegression` -- numpy_ml logistic regression
 
 ## lda -- additional LDA variants
 
-- [ ] `SmoothedLDA` -- smoothed LDA
+- [x] `SmoothedLDA` -- smoothed LDA

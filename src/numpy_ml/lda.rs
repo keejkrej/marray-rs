@@ -1,5 +1,6 @@
 use ndarray::{Array1, Array2};
 use rand::distributions::Distribution;
+use rand::Rng;
 use special::Gamma;
 
 /// Vanilla (non-smoothed) Latent Dirichlet Allocation trained with variational EM.
@@ -287,3 +288,160 @@ impl LDA {
 fn dg(gamma: &Array2<f64>, d: usize, t: usize) -> f64 {
     gamma[[d, t]].digamma() - gamma.row(d).sum().digamma()
 }
+
+/// Smoothed Latent Dirichlet Allocation trained with collapsed Gibbs sampling.
+pub struct SmoothedLDA {
+    pub n_topics: usize,
+    pub alpha: f64,
+    pub beta: f64,
+    pub phi: Option<Array2<f64>>,   // (V, T) word-topic distribution
+    pub theta: Option<Array2<f64>>, // (D, T) doc-topic distribution
+}
+
+impl SmoothedLDA {
+    pub fn new(n_topics: usize, alpha: Option<f64>, beta: Option<f64>) -> Self {
+        let alpha = alpha.unwrap_or(50.0 / n_topics as f64);
+        let beta = beta.unwrap_or(0.01);
+        Self {
+            n_topics,
+            alpha,
+            beta,
+            phi: None,
+            theta: None,
+        }
+    }
+
+    /// Train the model on tokenized documents using collapsed Gibbs sampling.
+    pub fn train(&mut self, corpus: &[Vec<usize>], n_gibbs: usize) {
+        use rand::distributions::WeightedIndex;
+
+        let d_count = corpus.len();
+        let v_count = corpus
+            .iter()
+            .flat_map(|doc| doc.iter())
+            .copied()
+            .max()
+            .map(|m| m + 1)
+            .unwrap_or(0);
+
+        let t = self.n_topics;
+        let v = v_count;
+        let d = d_count;
+        let alpha = self.alpha;
+        let beta = self.beta;
+
+        // Flatten words and track their doc ids
+        let mut words = Vec::new();
+        let mut word_doc = Vec::new();
+        for (doc_idx, doc) in corpus.iter().enumerate() {
+            for &w in doc {
+                words.push(w);
+                word_doc.push(doc_idx);
+            }
+        }
+        let total_words = words.len();
+        if total_words == 0 || v == 0 {
+            return;
+        }
+
+        let mut rng = rand::thread_rng();
+
+        let mut c_wt = Array2::<usize>::zeros((v, t));
+        let mut c_dt = Array2::<usize>::zeros((d, t));
+        let mut sum_c_wt = vec![0usize; t];
+        let mut sum_c_dt = vec![0usize; d];
+
+        let mut assignments = Vec::with_capacity(total_words);
+        for i in 0..total_words {
+            let topic = rng.r#gen_range(0..t);
+            assignments.push(topic);
+
+            let w = words[i];
+            let doc = word_doc[i];
+            c_wt[[w, topic]] += 1;
+            c_dt[[doc, topic]] += 1;
+            sum_c_wt[topic] += 1;
+            sum_c_dt[doc] += 1;
+        }
+
+        // Gibbs sampling
+        for _ in 0..n_gibbs {
+            for i in 0..total_words {
+                let w = words[i];
+                let doc = word_doc[i];
+                let cur_topic = assignments[i];
+
+                c_wt[[w, cur_topic]] -= 1;
+                c_dt[[doc, cur_topic]] -= 1;
+                sum_c_wt[cur_topic] -= 1;
+                sum_c_dt[doc] -= 1;
+
+                let mut p_vec = Vec::with_capacity(t);
+                for topic in 0..t {
+                    let p_w = (c_wt[[w, topic]] as f64 + beta) / (sum_c_wt[topic] as f64 + v as f64 * beta);
+                    let p_t = (c_dt[[doc, topic]] as f64 + alpha) / (sum_c_dt[doc] as f64 + t as f64 * alpha);
+                    p_vec.push(p_w * p_t);
+                }
+
+                let dist = WeightedIndex::new(&p_vec).unwrap();
+                let new_topic = dist.sample(&mut rng);
+
+                assignments[i] = new_topic;
+                c_wt[[w, new_topic]] += 1;
+                c_dt[[doc, new_topic]] += 1;
+                sum_c_wt[new_topic] += 1;
+                sum_c_dt[doc] += 1;
+            }
+        }
+
+        // Compute phi and theta
+        let mut phi = Array2::<f64>::zeros((v, t));
+        for w in 0..v {
+            for topic in 0..t {
+                phi[[w, topic]] = (c_wt[[w, topic]] as f64 + beta) / (sum_c_wt[topic] as f64 + v as f64 * beta);
+            }
+        }
+
+        let mut theta = Array2::<f64>::zeros((d, t));
+        for doc in 0..d {
+            for topic in 0..t {
+                theta[[doc, topic]] = (c_dt[[doc, topic]] as f64 + alpha) / (sum_c_dt[doc] as f64 + t as f64 * alpha);
+            }
+        }
+
+        self.phi = Some(phi);
+        self.theta = Some(theta);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_smoothed_lda() {
+        let corpus = vec![
+            vec![0, 1, 2, 0, 1],
+            vec![0, 1, 0, 2],
+            vec![3, 4, 5, 3],
+            vec![4, 5, 4, 3, 5],
+        ];
+
+        let mut model = SmoothedLDA::new(2, Some(1.0), Some(0.1));
+        model.train(&corpus, 50);
+
+        let phi = model.phi.as_ref().unwrap();
+        assert_eq!(phi.nrows(), 6);
+        assert_eq!(phi.ncols(), 2);
+
+        let theta = model.theta.as_ref().unwrap();
+        assert_eq!(theta.nrows(), 4);
+        assert_eq!(theta.ncols(), 2);
+
+        for doc in 0..4 {
+            let sum: f64 = theta.row(doc).iter().sum();
+            assert!((sum - 1.0).abs() < 1e-5);
+        }
+    }
+}
+

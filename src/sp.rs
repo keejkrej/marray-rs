@@ -7,6 +7,8 @@ pub mod optimize;
 pub mod spatial;
 pub mod ndimage;
 pub mod special;
+pub mod integrate;
+pub mod sparse;
 
 #[cfg(test)]
 mod tests {

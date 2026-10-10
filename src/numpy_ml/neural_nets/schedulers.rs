@@ -100,6 +100,7 @@ impl Scheduler for NoamScheduler {
 ///
 /// Monitors loss history and decays LR when loss stops decreasing.
 pub struct KingScheduler {
+    #[allow(dead_code)]
     initial_lr: f64,
     patience: usize,
     decay: f64,
@@ -165,7 +166,7 @@ impl KingScheduler {
 }
 
 impl Scheduler for KingScheduler {
-    fn learning_rate(&self, _step: usize, cur_loss: Option<f64>) -> f64 {
+    fn learning_rate(&self, _step: usize, _cur_loss: Option<f64>) -> f64 {
         self.current_lr
     }
 

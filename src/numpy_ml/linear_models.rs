@@ -310,3 +310,208 @@ fn b_prime2_values(link: &str, theta: &Array1<f64>) -> Array1<f64> {
         _ => panic!("Unsupported link function: {link}"),
     }
 }
+
+/// Ridge regression fit via normal equations: beta = (X^T X + alpha * I)^{-1} X^T y.
+pub struct RidgeRegression {
+    pub alpha: f64,
+    pub fit_intercept: bool,
+    pub beta: Option<Array1<f64>>,
+}
+
+impl RidgeRegression {
+    pub fn new(alpha: f64, fit_intercept: bool) -> Self {
+        Self {
+            alpha,
+            fit_intercept,
+            beta: None,
+        }
+    }
+
+    pub fn fit(&mut self, x: &Array2<f64>, y: &Array1<f64>) -> Result<(), String> {
+        let (nrows, ncols) = x.dim();
+        if nrows == 0 || nrows != y.len() {
+            return Err("Dimensions of X and y must match".to_string());
+        }
+
+        let design = if self.fit_intercept {
+            let mut with_intercept = Array2::ones((nrows, ncols + 1));
+            for r in 0..nrows {
+                for c in 0..ncols {
+                    with_intercept[[r, c + 1]] = x[[r, c]];
+                }
+            }
+            with_intercept
+        } else {
+            x.clone()
+        };
+
+        let m = design.ncols();
+        let xt = design.t();
+        let mut xtx = xt.dot(&design);
+        for i in 0..m {
+            xtx[[i, i]] += self.alpha;
+        }
+
+        let xty = xt.dot(y);
+        let beta = crate::sp::linalg::solve_vec(&xtx, &xty)?;
+        self.beta = Some(beta);
+        Ok(())
+    }
+
+    pub fn predict(&self, x: &Array2<f64>) -> Result<Array1<f64>, String> {
+        let beta = self.beta.as_ref().ok_or("Model not fitted")?;
+        let (nrows, ncols) = x.dim();
+        let design = if self.fit_intercept {
+            let mut with_intercept = Array2::ones((nrows, ncols + 1));
+            for r in 0..nrows {
+                for c in 0..ncols {
+                    with_intercept[[r, c + 1]] = x[[r, c]];
+                }
+            }
+            with_intercept
+        } else {
+            x.clone()
+        };
+        Ok(design.dot(beta))
+    }
+}
+
+/// Binary logistic regression fit via gradient descent on penalized negative log likelihood.
+pub struct LogisticRegression {
+    pub penalty: String,
+    pub gamma: f64,
+    pub fit_intercept: bool,
+    pub beta: Option<Array1<f64>>,
+}
+
+impl LogisticRegression {
+    pub fn new(penalty: &str, gamma: f64, fit_intercept: bool) -> Self {
+        Self {
+            penalty: penalty.to_string(),
+            gamma,
+            fit_intercept,
+            beta: None,
+        }
+    }
+
+    pub fn fit(&mut self, x: &Array2<f64>, y: &Array1<f64>, lr: f64, tol: f64, max_iter: usize) -> Result<(), String> {
+        let (nrows, ncols) = x.dim();
+        if nrows == 0 || nrows != y.len() {
+            return Err("Dimensions of X and y must match".to_string());
+        }
+
+        let design = if self.fit_intercept {
+            let mut with_intercept = Array2::ones((nrows, ncols + 1));
+            for r in 0..nrows {
+                for c in 0..ncols {
+                    with_intercept[[r, c + 1]] = x[[r, c]];
+                }
+            }
+            with_intercept
+        } else {
+            x.clone()
+        };
+
+        let m = design.ncols();
+        let mut beta = Array1::<f64>::zeros(m);
+        let mut l_prev = f64::INFINITY;
+
+        let sigmoid = |z: f64| 1.0 / (1.0 + (-z).exp());
+
+        for _ in 0..max_iter {
+            let pred: Array1<f64> = design.dot(&beta).mapv(sigmoid);
+
+            let mut nll = 0.0;
+            let eps = 1e-15;
+            for i in 0..nrows {
+                let p = pred[i].clamp(eps, 1.0 - eps);
+                if y[i] > 0.5 {
+                    nll -= p.ln();
+                } else {
+                    nll -= (1.0 - p).ln();
+                }
+            }
+
+            let penalty = if self.penalty == "l1" {
+                self.gamma * beta.iter().map(|v| v.abs()).sum::<f64>()
+            } else {
+                0.5 * self.gamma * beta.iter().map(|v| v * v).sum::<f64>()
+            };
+
+            let loss = (nll + penalty) / nrows as f64;
+            if (l_prev - loss).abs() < tol {
+                break;
+            }
+            l_prev = loss;
+
+            let err = &pred - y;
+            let mut grad = design.t().dot(&err) / nrows as f64;
+            if self.penalty == "l1" {
+                for j in 0..m {
+                    grad[j] += (self.gamma / nrows as f64) * beta[j].signum();
+                }
+            } else {
+                for j in 0..m {
+                    grad[j] += (self.gamma / nrows as f64) * beta[j];
+                }
+            }
+
+            beta = beta - grad * lr;
+        }
+
+        self.beta = Some(beta);
+        Ok(())
+    }
+
+    pub fn predict_proba(&self, x: &Array2<f64>) -> Result<Array1<f64>, String> {
+        let beta = self.beta.as_ref().ok_or("Model not fitted")?;
+        let (nrows, ncols) = x.dim();
+        let design = if self.fit_intercept {
+            let mut with_intercept = Array2::ones((nrows, ncols + 1));
+            for r in 0..nrows {
+                for c in 0..ncols {
+                    with_intercept[[r, c + 1]] = x[[r, c]];
+                }
+            }
+            with_intercept
+        } else {
+            x.clone()
+        };
+        let sigmoid = |z: f64| 1.0 / (1.0 + (-z).exp());
+        Ok(design.dot(beta).mapv(sigmoid))
+    }
+
+    pub fn predict(&self, x: &Array2<f64>) -> Result<Array1<f64>, String> {
+        let probs = self.predict_proba(x)?;
+        Ok(probs.mapv(|p| if p >= 0.5 { 1.0 } else { 0.0 }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ndarray::array;
+
+    #[test]
+    fn test_ridge_regression() {
+        let x = array![[1.0], [2.0], [3.0], [4.0]];
+        let y = array![2.0, 4.0, 6.0, 8.0];
+        let mut model = RidgeRegression::new(0.1, true);
+        model.fit(&x, &y).unwrap();
+
+        let pred = model.predict(&array![[5.0]]).unwrap();
+        assert!((pred[0] - 10.0).abs() < 0.5);
+    }
+
+    #[test]
+    fn test_logistic_regression() {
+        let x = array![[0.1], [0.2], [0.9], [1.1]];
+        let y = array![0.0, 0.0, 1.0, 1.0];
+        let mut model = LogisticRegression::new("l2", 0.01, true);
+        model.fit(&x, &y, 1.0, 1e-5, 5000).unwrap();
+
+        let pred = model.predict(&array![[0.05], [1.5]]).unwrap();
+        assert_eq!(pred[0], 0.0);
+        assert_eq!(pred[1], 1.0);
+    }
+}

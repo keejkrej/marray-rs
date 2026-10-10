@@ -1,5 +1,5 @@
-    use ndarray::{array, Array2};
-use rand::Rng;
+use ndarray::Array2;
+use rand::seq::SliceRandom;
 
 /// Compute minibatch indices for a dataset.
 ///
@@ -172,11 +172,11 @@ pub fn softmax(x: &Array2<f64>) -> Array2<f64> {
     output
 }
 
-use rand::seq::SliceRandom;
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ndarray::array;
 
     #[test]
     fn test_minibatch_indices() {

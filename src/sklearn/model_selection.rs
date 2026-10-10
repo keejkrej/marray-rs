@@ -244,6 +244,77 @@ impl GridSearchCV {
     }
 }
 
+/// Randomized search on hyper parameters.
+///
+/// In contrast to GridSearchCV, not all parameter values are tried out,
+/// but rather a fixed number of parameter settings is sampled from the specified distributions.
+pub struct RandomizedSearchCV {
+    pub param_distributions: Vec<usize>,
+    pub n_iter: usize,
+    pub cv_folds: usize,
+    pub seed: Option<u64>,
+    best_param: usize,
+    best_score: f64,
+}
+
+impl RandomizedSearchCV {
+    pub fn new(
+        param_distributions: Vec<usize>,
+        n_iter: usize,
+        cv_folds: usize,
+        seed: Option<u64>,
+    ) -> Self {
+        assert!(!param_distributions.is_empty(), "param_distributions must not be empty");
+        assert!(cv_folds >= 2, "cv_folds must be >= 2");
+        assert!(n_iter >= 1, "n_iter must be >= 1");
+        Self {
+            param_distributions,
+            n_iter,
+            cv_folds,
+            seed,
+            best_param: 0,
+            best_score: 0.0,
+        }
+    }
+
+    pub fn fit(&mut self, x: &Array2<f64>, y: &Array1<f64>) {
+        use rand::SeedableRng;
+        let mut rng = match self.seed {
+            Some(s) => rand::rngs::StdRng::seed_from_u64(s),
+            None => rand::rngs::StdRng::from_entropy(),
+        };
+
+        let kf = KFold::new(self.cv_folds, true, self.seed);
+        let splits = kf.split(x.nrows());
+
+        let mut sampled_params: Vec<usize> = Vec::with_capacity(self.n_iter);
+        for _ in 0..self.n_iter {
+            let choice = self.param_distributions.choose(&mut rng).copied().unwrap();
+            sampled_params.push(choice);
+        }
+
+        self.best_param = sampled_params[0];
+        self.best_score = 0.0;
+
+        for &k in &sampled_params {
+            let scores = cross_val_score_knn(x, y, k, &splits);
+            let mean_score: f64 = scores.iter().sum::<f64>() / scores.len() as f64;
+            if mean_score > self.best_score {
+                self.best_score = mean_score;
+                self.best_param = k;
+            }
+        }
+    }
+
+    pub fn best_params(&self) -> usize {
+        self.best_param
+    }
+
+    pub fn best_score(&self) -> f64 {
+        self.best_score
+    }
+}
+
 #[cfg(test)]
 mod cv_tests {
     use super::*;
@@ -332,5 +403,19 @@ mod cv_tests {
         gs.fit(&x, &y);
         assert!(gs.best_score() > 0.5, "best score should be reasonable");
         assert!(gs.best_params() >= 1);
+    }
+
+    #[test]
+    fn test_randomized_search_cv() {
+        let x = array![
+            [0.0, 0.0], [0.1, 0.1], [0.2, 0.0], [0.0, 0.2],
+            [1.0, 1.0], [1.1, 1.0], [1.0, 1.1], [1.1, 1.1],
+            [2.0, 2.0], [2.1, 2.0], [2.0, 2.1], [2.1, 2.1],
+        ];
+        let y = array![0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0];
+        let mut rs = RandomizedSearchCV::new(vec![1, 2, 3, 4], 3, 3, Some(42));
+        rs.fit(&x, &y);
+        assert!(rs.best_score() > 0.5, "best score should be reasonable");
+        assert!(rs.best_params() >= 1);
     }
 }

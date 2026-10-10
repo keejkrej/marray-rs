@@ -1,6 +1,5 @@
 use rand::distributions::{Distribution, WeightedIndex};
 use rand::Rng;
-use std::collections::HashMap;
 
 /// A multi-armed bandit with Bernoulli-distributed arm payoffs.
 pub struct BernoulliBandit {
@@ -286,3 +285,81 @@ impl BanditPolicy for ThompsonSampling {
         self.initialized = false;
     }
 }
+
+/// Softmax (Boltzmann) exploration policy for multi-armed bandits.
+pub struct SoftmaxPolicy {
+    tau: f64,
+    ev_prior: f64,
+    ev_estimates: Vec<f64>,
+    pull_counts: Vec<usize>,
+    initialized: bool,
+}
+
+impl SoftmaxPolicy {
+    pub fn new(tau: f64, ev_prior: f64) -> Self {
+        Self {
+            tau,
+            ev_prior,
+            ev_estimates: Vec::new(),
+            pull_counts: Vec::new(),
+            initialized: false,
+        }
+    }
+
+    fn initialize(&mut self, n_arms: usize) {
+        self.ev_estimates = vec![self.ev_prior; n_arms];
+        self.pull_counts = vec![0; n_arms];
+        self.initialized = true;
+    }
+}
+
+impl BanditPolicy for SoftmaxPolicy {
+    fn act(&mut self, bandit: &dyn Bandit) -> (f64, usize) {
+        if !self.initialized {
+            self.initialize(bandit.n_arms());
+        }
+
+        let tau = self.tau.max(1e-8);
+        let max_val = self.ev_estimates.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+        let exp_vals: Vec<f64> = self
+            .ev_estimates
+            .iter()
+            .map(|&v| ((v - max_val) / tau).exp())
+            .collect();
+        let dist = WeightedIndex::new(&exp_vals).unwrap();
+        let mut rng = rand::thread_rng();
+        let arm_id = dist.sample(&mut rng);
+
+        let reward = bandit.pull(arm_id);
+        self.pull_counts[arm_id] += 1;
+        self.ev_estimates[arm_id] +=
+            (reward - self.ev_estimates[arm_id]) / self.pull_counts[arm_id] as f64;
+        (reward, arm_id)
+    }
+
+    fn reset(&mut self) {
+        self.ev_estimates.clear();
+        self.pull_counts.clear();
+        self.initialized = false;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_softmax_policy() {
+        let bandit = BernoulliBandit::new(vec![0.1, 0.9]);
+        let mut policy = SoftmaxPolicy::new(0.1, 0.5);
+
+        for _ in 0..150 {
+            policy.act(&bandit);
+        }
+
+        let (_, best_arm) = bandit.oracle_payoff();
+        assert_eq!(best_arm, 1);
+        assert!(policy.ev_estimates[1] > policy.ev_estimates[0]);
+    }
+}
+

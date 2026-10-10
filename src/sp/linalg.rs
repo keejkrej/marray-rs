@@ -541,6 +541,7 @@ mod tests {
         (a - b).abs() < tol
     }
 
+    #[allow(dead_code)]
     fn approx_eq_arr1(a: &Array1<f64>, b: &Array1<f64>, tol: f64) -> bool {
         a.len() == b.len() && a.iter().zip(b.iter()).all(|(x, y)| approx_eq(*x, *y, tol))
     }

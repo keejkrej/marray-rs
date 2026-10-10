@@ -9,6 +9,7 @@ pub mod bandits;
 pub mod ngram;
 pub mod rl_models;
 pub mod neural_nets;
+pub mod trees;
 
 #[cfg(test)]
 mod tests {
