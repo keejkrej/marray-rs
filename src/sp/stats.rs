@@ -1,4 +1,4 @@
-use ndarray::Array1;
+use ndarray::{Array1, Array2};
 
 /// Standard error function approximation (Abramowitz and Stegun).
 pub fn erf(x: f64) -> f64 {
@@ -1448,6 +1448,103 @@ pub fn shapiro(x: &[f64]) -> Result<(f64, f64), String> {
     Ok((w, p))
 }
 
+/// Chi-square test of independence of variables in a contingency table.
+///
+/// Returns (chi2_statistic, p_value, degrees_of_freedom, expected_frequencies).
+pub fn chi2_contingency(observed: &Array2<f64>) -> Result<(f64, f64, usize, Array2<f64>), String> {
+    let (nrows, ncols) = observed.dim();
+    if nrows < 2 || ncols < 2 {
+        return Err("Contingency table must have at least 2 rows and 2 columns".to_string());
+    }
+
+    for &val in observed.iter() {
+        if val < 0.0 {
+            return Err("All entries in observed table must be non-negative".to_string());
+        }
+    }
+
+    let mut row_sums = vec![0.0; nrows];
+    let mut col_sums = vec![0.0; ncols];
+    let mut total = 0.0;
+
+    for r in 0..nrows {
+        for c in 0..ncols {
+            let v = observed[[r, c]];
+            row_sums[r] += v;
+            col_sums[c] += v;
+            total += v;
+        }
+    }
+
+    if total == 0.0 {
+        return Err("Total sum of table entries cannot be zero".to_string());
+    }
+
+    let mut expected = Array2::<f64>::zeros((nrows, ncols));
+    let mut chi2 = 0.0;
+
+    for r in 0..nrows {
+        for c in 0..ncols {
+            let exp = (row_sums[r] * col_sums[c]) / total;
+            expected[[r, c]] = exp;
+            if exp > 0.0 {
+                let diff = observed[[r, c]] - exp;
+                chi2 += diff * diff / exp;
+            }
+        }
+    }
+
+    let dof = (nrows - 1) * (ncols - 1);
+    let chi2_dist = Chi2Dist::new(dof as f64);
+    let p_value = (1.0 - chi2_dist.cdf(chi2)).clamp(0.0, 1.0);
+
+    Ok((chi2, p_value, dof, expected))
+}
+
+/// Compute the first Wasserstein distance between two 1D empirical distributions.
+pub fn wasserstein_distance(u_values: &Array1<f64>, v_values: &Array1<f64>) -> f64 {
+    let n_u = u_values.len();
+    let n_v = v_values.len();
+    if n_u == 0 || n_v == 0 {
+        return 0.0;
+    }
+
+    let mut u_sorted = u_values.to_vec();
+    let mut v_sorted = v_values.to_vec();
+    u_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    v_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+
+    let mut all_points = Vec::with_capacity(n_u + n_v);
+    all_points.extend_from_slice(&u_sorted);
+    all_points.extend_from_slice(&v_sorted);
+    all_points.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    all_points.dedup();
+
+    let mut total_dist = 0.0;
+    let mut idx_u = 0;
+    let mut idx_v = 0;
+
+    for i in 0..all_points.len().saturating_sub(1) {
+        let x_curr = all_points[i];
+        let x_next = all_points[i + 1];
+        let dx = x_next - x_curr;
+
+        while idx_u < n_u && u_sorted[idx_u] <= x_curr {
+            idx_u += 1;
+        }
+        while idx_v < n_v && v_sorted[idx_v] <= x_curr {
+            idx_v += 1;
+        }
+
+        let cdf_u = idx_u as f64 / n_u as f64;
+        let cdf_v = idx_v as f64 / n_v as f64;
+
+        total_dist += (cdf_u - cdf_v).abs() * dx;
+    }
+
+    total_dist
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Tests
 // ──────────────────────────────────────────────────────────────────────────────
@@ -1820,5 +1917,35 @@ mod tests {
         let (w, p) = shapiro(&x).unwrap();
         assert!(w > 0.0 && w <= 1.0);
         assert!(p > 0.0 && p <= 1.0);
+    }
+
+    #[test]
+    fn test_chi2_contingency() {
+        // Example: 2x2 table [[10, 20], [20, 40]] has independent rows and cols -> chi2 should be 0
+        let obs_indep = Array2::from_shape_vec((2, 2), vec![10.0, 20.0, 20.0, 40.0]).unwrap();
+        let (chi2, p_val, dof, _) = chi2_contingency(&obs_indep).unwrap();
+        assert_eq!(dof, 1);
+        assert!(chi2 < 1e-10);
+        assert!((p_val - 1.0).abs() < 1e-6);
+
+        // Dependent table: [[10, 10], [20, 10]]
+        let obs = Array2::from_shape_vec((2, 2), vec![10.0, 10.0, 20.0, 10.0]).unwrap();
+        let (chi2_dep, _, dof_dep, expected) = chi2_contingency(&obs).unwrap();
+        assert_eq!(dof_dep, 1);
+        assert!(chi2_dep > 0.0);
+        assert_eq!(expected.dim(), (2, 2));
+    }
+
+    #[test]
+    fn test_wasserstein_distance() {
+        // Identical distributions -> distance = 0
+        let u = Array1::from_vec(vec![1.0, 2.0, 3.0]);
+        let dist_zero = wasserstein_distance(&u, &u);
+        assert!(dist_zero.abs() < 1e-12);
+
+        // Shifted distribution: distance should equal the shift
+        let v = Array1::from_vec(vec![2.0, 3.0, 4.0]);
+        let dist = wasserstein_distance(&u, &v);
+        assert!((dist - 1.0).abs() < 1e-6);
     }
 }

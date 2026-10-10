@@ -163,7 +163,7 @@ cargo run --example numpy_ml_demo
 
 ## Testing
 
-Run the full unit test suite (430+ tests):
+Run the full unit test suite (440+ tests):
 
 ```bash
 cargo test
@@ -179,13 +179,14 @@ cargo test --release
 
 ## Roadmap & Implementation Status
 
-All 5 core development phases are completed:
+All 6 core development phases are completed:
 
 - [x] **Phase 1: Foundational Additions**: Math functions, array operations, linear algebra solvers, basic statistics, FFT, random distributions.
 - [x] **Phase 2: High-Value ML Components**: Decision trees, Random Forests, Gradient Boosted Trees, K-Means, PCA, SVR, MLPClassifier/Regressor.
 - [x] **Phase 3: Signal, Interpolation, & Image Analysis**: IIR/FIR filter design (Butterworth, Chebyshev), STFT/Welch, 1D/2D interpolation, image morphology, and restoration.
 - [x] **Phase 4: Numpy-ML Completion**: Deep neural net layers (Conv1D/2D, Pooling, BatchNorm, Dropout, Attention, Multi-Head Attention, GRU), models (BernoulliVAE, Word2Vec), Bandits, and RL agents.
 - [x] **Phase 5: Advanced Scientific & Specialized ML**: Numerical integration (`quad`, `solve_ivp`, `odeint`), sparse matrices (`CSRMatrix`, `spsolve`, `eigsh`), spatial (`KDTree`, `Delaunay`, `Voronoi`, `ConvexHull`), manifold (`TSNE`, `Isomap`), GMM, Gaussian Processes, and advanced special functions.
+- [x] **Phase 6: Optimization, Clustering, & Statistical Completeness**: Multivariate optimization (Nelder-Mead downhill simplex, BFGS quasi-Newton), 1D root finding (`brentq`, `newton`), hierarchical clustering (`AgglomerativeClustering` with Ward/complete/average/single linkage), `KNeighborsRegressor`, `RandomizedSearchCV`, `chi2_contingency`, and 1D `wasserstein_distance`.
 
 ---
 

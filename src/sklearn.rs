@@ -287,4 +287,42 @@ mod tests {
         assert_eq!(labels[0], labels[1]);
         assert_eq!(labels[2], -1.0);
     }
+
+    #[test]
+    fn test_agglomerative_clustering() {
+        let x = array![
+            [0.0, 0.0],
+            [0.1, 0.1],
+            [10.0, 10.0],
+            [10.1, 10.1],
+        ];
+        let agg = cluster::AgglomerativeClustering::new(2, Some("ward"));
+        let labels = agg.fit_predict(&x);
+        assert_eq!(labels[0], labels[1]);
+        assert_eq!(labels[2], labels[3]);
+        assert_ne!(labels[0], labels[2]);
+    }
+
+    #[test]
+    fn test_kneighbors_regressor() {
+        let x = array![[1.0], [2.0], [3.0]];
+        let y = array![2.0, 4.0, 6.0];
+        let mut reg = neighbors::KNeighborsRegressor::new(2, Some("distance"));
+        reg.fit(&x, &y);
+        let pred = reg.predict(&array![[2.0]]);
+        assert!((pred[0] - 4.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_randomized_search_cv() {
+        let x = array![
+            [0.0, 0.0], [0.1, 0.1], [0.2, 0.0],
+            [1.0, 1.0], [1.1, 1.0], [1.0, 1.1],
+        ];
+        let y = array![0.0, 0.0, 0.0, 1.0, 1.0, 1.0];
+        let mut rs = model_selection::RandomizedSearchCV::new(vec![1, 2, 3], 3, 2, Some(42));
+        rs.fit(&x, &y);
+        assert!(rs.best_params() >= 1);
+        assert!(rs.best_score() > 0.0);
+    }
 }
