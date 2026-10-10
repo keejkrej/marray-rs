@@ -154,7 +154,7 @@ fn binomial_sample<R: Rng>(n: u64, p: f64, rng: &mut R) -> u64 {
         let v: f64 = rng.r#gen::<f64>() * p1;
         let u2 = u - 0.5;
         let k_float = ((2.0 * a / p1 + u2) * c_sigma + np + 0.5).floor();
-        if k_float < a || k_float > b as f64 {
+        if k_float < a || k_float > b {
             continue;
         }
         let k = k_float as u64;

@@ -1,7 +1,7 @@
 //! Numerical fidelity tests against Python reference fixtures.
 //! Verifies exact floating point parity with NumPy, SciPy, scikit-learn, scikit-image, and numpy-ml.
 
-use mlab::{np, numpy_ml, skimage, sklearn, sp};
+use marray::{np, numpy_ml, skimage, sklearn, sp};
 use ndarray::{array, Array2, Array3};
 use serde_json::Value;
 use std::fs;

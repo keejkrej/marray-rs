@@ -67,9 +67,9 @@ pub fn cholesky(arr: &Array2<f64>, lower: bool) -> Result<Array2<f64>, String> {
 pub fn svd(arr: &Array2<f64>) -> SVDResult {
     let mat = ndarray_to_nalgebra(arr);
     let svd = mat.svd(true, true);
-    let u = svd.u.map(|u_mat| nalgebra_to_ndarray(u_mat));
+    let u = svd.u.map(nalgebra_to_ndarray);
     let s = Array1::from_vec(svd.singular_values.iter().cloned().collect());
-    let vh = svd.v_t.map(|vt_mat| nalgebra_to_ndarray(vt_mat));
+    let vh = svd.v_t.map(nalgebra_to_ndarray);
     SVDResult { u, s, vh }
 }
 

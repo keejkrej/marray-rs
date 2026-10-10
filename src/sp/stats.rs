@@ -135,14 +135,14 @@ pub fn lgamma(x: f64) -> f64 {
     let x = x - 1.0;
     let g = 7.0;
     let c = [
-        0.99999999999980993,
+        0.999_999_999_999_809_9,
         676.5203681218851,
         -1259.1392167224028,
-        771.32342877765313,
-        -176.61502916214059,
+        771.323_428_777_653_1,
+        -176.615_029_162_140_6,
         12.507343278686905,
         -0.13857109526572012,
-        9.9843695780195716e-6,
+        9.984_369_578_019_572e-6,
         1.5056327351493116e-7,
     ];
     let mut sum = c[0];
@@ -333,12 +333,12 @@ pub fn norm_ppf(p: f64) -> f64 {
     if p == 0.5 {
         return 0.0;
     }
-    let t: f64;
-    if p < 0.5 {
-        t = (-2.0 * p.ln()).sqrt();
+    
+    let t: f64 = if p < 0.5 {
+        (-2.0 * p.ln()).sqrt()
     } else {
-        t = (-2.0 * (1.0 - p).ln()).sqrt();
-    }
+        (-2.0 * (1.0 - p).ln()).sqrt()
+    };
     let c0 = 2.515517;
     let c1 = 0.802853;
     let c2 = 0.010328;
@@ -1411,7 +1411,7 @@ pub fn ks_2samp(x: &[f64], y: &[f64]) -> (f64, f64) {
 /// Shapiro-Wilk normality test (simplified approximation).
 pub fn shapiro(x: &[f64]) -> Result<(f64, f64), String> {
     let n = x.len();
-    if n < 3 || n > 5000 {
+    if !(3..=5000).contains(&n) {
         return Err("Sample size must be between 3 and 5000".to_string());
     }
 

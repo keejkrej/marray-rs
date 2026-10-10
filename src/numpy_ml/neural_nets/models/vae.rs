@@ -127,8 +127,8 @@ impl BernoulliVAE {
         }
 
         let d_enc_h1 = self.enc_fc2.backward(&d_enc_out, true);
-        let dx = self.enc_fc1.backward(&d_enc_h1, true);
-        dx
+        
+        self.enc_fc1.backward(&d_enc_h1, true)
     }
 
     /// Update parameters of all encoder and decoder layers.

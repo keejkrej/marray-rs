@@ -34,14 +34,14 @@ pub fn gammaln(x: f64) -> f64 {
     let x = x - 1.0;
     // Lanczos coefficients (g=7, n=9)
     let c = [
-        0.99999999999980993,
+        0.999_999_999_999_809_9,
         676.5203681218851,
         -1259.1392167224028,
-        771.32342877765313,
-        -176.61502916214059,
+        771.323_428_777_653_1,
+        -176.615_029_162_140_6,
         12.507343278686905,
         -0.13857109526572012,
-        9.9843695780195716e-6,
+        9.984_369_578_019_572e-6,
         1.5056327351493116e-7,
     ];
 
@@ -629,8 +629,8 @@ pub fn ellipe(m: f64) -> f64 {
 
 /// Airy functions $Ai(x)$, $Ai'(x)$, $Bi(x)$, $Bi'(x)$.
 pub fn airy(x: f64) -> (f64, f64, f64, f64) {
-    let ai0 = 0.35502805388781724;
-    let aip0 = -0.25881940379280687;
+    let ai0 = 0.355_028_053_887_817_2;
+    let aip0 = -0.258_819_403_792_806_9;
     let sqrt3 = 3.0_f64.sqrt();
 
     if x.abs() < 1e-15 {
@@ -680,7 +680,7 @@ pub fn airy(x: f64) -> (f64, f64, f64, f64) {
 pub fn sph_harm(m: i64, n: i64, theta: f64, phi: f64) -> (f64, f64) {
     assert!(n >= 0 && m.abs() <= n, "Invalid n or m");
     let x = theta.cos();
-    let abs_m = m.abs() as usize;
+    let abs_m = m.unsigned_abs() as usize;
     let n_u = n as usize;
 
     // Associated Legendre polynomial P_n^{|m|}(x)

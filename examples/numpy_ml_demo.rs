@@ -1,8 +1,8 @@
-use mlab::numpy_ml::bandits::{BanditPolicy, BernoulliBandit, EpsilonGreedy, UCB1};
-use mlab::numpy_ml::neural_nets::layers::{BatchNorm, Conv1D, Dropout, Linear, MultiHeadAttention};
-use mlab::numpy_ml::neural_nets::models::BernoulliVAE;
-use mlab::numpy_ml::rl_models::{Environment, QLearningAgent, SARSAAgent};
-use mlab::numpy_ml::trees::{DecisionTree, RandomForest};
+use marray::numpy_ml::bandits::{BanditPolicy, BernoulliBandit, EpsilonGreedy, UCB1};
+use marray::numpy_ml::neural_nets::layers::{BatchNorm, Conv1D, Dropout, Linear, MultiHeadAttention};
+use marray::numpy_ml::neural_nets::models::BernoulliVAE;
+use marray::numpy_ml::rl_models::{Environment, QLearningAgent, SARSAAgent};
+use marray::numpy_ml::trees::{DecisionTree, RandomForest};
 use ndarray::{array, Array2, Array3};
 
 struct SimpleGridWorld {

@@ -1,4 +1,4 @@
-use mlab::np;
+use marray::np;
 
 fn main() {
     println!("--- NumPy Demo ---");

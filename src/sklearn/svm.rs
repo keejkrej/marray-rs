@@ -462,7 +462,7 @@ impl LinearSVC {
             for c in 0..ncols {
                 grad_w[c] = w[c] + scale * grad_w[c];
             }
-            grad_b = scale * grad_b;
+            grad_b *= scale;
 
             let mut step_size = lr / (1.0 + epoch as f64 * 0.01);
             let grad_norm: f64 = grad_w.iter().map(|v: &f64| v * v).sum::<f64>().sqrt() + grad_b.abs();

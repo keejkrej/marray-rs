@@ -97,15 +97,15 @@ pub fn hsv2rgb(hsv: &Array3<f64>) -> Array3<f64> {
             let x = c_val * (1.0 - ((h_prime % 2.0) - 1.0).abs());
             let m = v - c_val;
 
-            let (r1, g1, b1) = if h_prime >= 0.0 && h_prime < 1.0 {
+            let (r1, g1, b1) = if (0.0..1.0).contains(&h_prime) {
                 (c_val, x, 0.0)
-            } else if h_prime >= 1.0 && h_prime < 2.0 {
+            } else if (1.0..2.0).contains(&h_prime) {
                 (x, c_val, 0.0)
-            } else if h_prime >= 2.0 && h_prime < 3.0 {
+            } else if (2.0..3.0).contains(&h_prime) {
                 (0.0, c_val, x)
-            } else if h_prime >= 3.0 && h_prime < 4.0 {
+            } else if (3.0..4.0).contains(&h_prime) {
                 (0.0, x, c_val)
-            } else if h_prime >= 4.0 && h_prime < 5.0 {
+            } else if (4.0..5.0).contains(&h_prime) {
                 (x, 0.0, c_val)
             } else {
                 (c_val, 0.0, x)

@@ -1,5 +1,5 @@
-use mlab::np;
-use mlab::skimage::{color, exposure, filters, morphology, transform};
+use marray::np;
+use marray::skimage::{color, exposure, filters, morphology, transform};
 
 fn main() {
     println!("--- Scikit-Image Demo ---");

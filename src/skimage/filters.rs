@@ -4,7 +4,7 @@ use image::{GrayImage, Luma};
 /// Compute Otsu's optimal threshold for a grayscale image.
 pub fn threshold_otsu(image: &Array2<u8>) -> f64 {
     let (height, width) = image.dim();
-    let total = (height * width) as usize;
+    let total = height * width;
     let mut hist = [0usize; 256];
     for y in 0..height {
         for x in 0..width {

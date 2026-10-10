@@ -29,6 +29,12 @@ impl LabelEncoder {
     }
 }
 
+impl Default for LabelEncoder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// StandardScaler standardizes features by removing the mean and scaling to unit variance.
 pub struct StandardScaler {
     pub mean: Option<Array1<f64>>,
@@ -87,6 +93,12 @@ impl StandardScaler {
     }
 }
 
+impl Default for StandardScaler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// MinMaxScaler scales features to a given range (typically 0 to 1).
 pub struct MinMaxScaler {
     pub min: Option<Array1<f64>>,
@@ -138,6 +150,12 @@ impl MinMaxScaler {
     pub fn fit_transform(&mut self, x: &Array2<f64>) -> Array2<f64> {
         self.fit(x);
         self.transform(x)
+    }
+}
+
+impl Default for MinMaxScaler {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

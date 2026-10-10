@@ -309,6 +309,12 @@ impl QuadraticDiscriminantAnalysis {
     }
 }
 
+impl Default for QuadraticDiscriminantAnalysis {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

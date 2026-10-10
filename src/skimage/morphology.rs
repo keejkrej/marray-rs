@@ -218,7 +218,7 @@ pub fn skeletonize(image: &Array2<bool>) -> Array2<bool> {
                     skel[[y - 1, x - 1]], // p9
                 ];
                 let bp = p.iter().filter(|&&v| v).count();
-                if bp < 2 || bp > 6 {
+                if !(2..=6).contains(&bp) {
                     continue;
                 }
                 let ap = transitions(&p);
@@ -255,7 +255,7 @@ pub fn skeletonize(image: &Array2<bool>) -> Array2<bool> {
                     skel[[y - 1, x - 1]], // p9
                 ];
                 let bp = p.iter().filter(|&&v| v).count();
-                if bp < 2 || bp > 6 {
+                if !(2..=6).contains(&bp) {
                     continue;
                 }
                 let ap = transitions(&p);
