@@ -226,24 +226,20 @@ fn polyder(p: &[f64]) -> Vec<f64> {
 }
 
 fn poly_from_roots(roots: &[(f64, f64)]) -> Vec<f64> {
-    let n = roots.len();
-    let mut result_re = vec![0.0; n + 1];
-    let mut result_im = vec![0.0; n + 1];
-    result_re[0] = 1.0;
-
+    let mut c: Vec<(f64, f64)> = vec![(1.0, 0.0)];
     for &(re, im) in roots {
-        for j in (1..=n).rev() {
-            let rj_re = result_re[j];
-            let rj_im = result_im[j];
-            let rj1_re = result_re[j - 1];
-            let rj1_im = result_im[j - 1];
-            let prod_re = re * rj_re - im * rj_im;
-            let prod_im = re * rj_im + im * rj_re;
-            result_re[j] = rj1_re - prod_re;
-            result_im[j] = rj1_im - prod_im;
+        let mut new_c = vec![(0.0, 0.0); c.len() + 1];
+        for (i, &(cre, cim)) in c.iter().enumerate() {
+            new_c[i].0 += cre;
+            new_c[i].1 += cim;
+            let sub_re = -cre * re + cim * im;
+            let sub_im = -cre * im - cim * re;
+            new_c[i + 1].0 += sub_re;
+            new_c[i + 1].1 += sub_im;
         }
+        c = new_c;
     }
-    result_re
+    c.into_iter().map(|(re, _)| re).collect()
 }
 
 /// Solve lower-triangular system Lx = b via forward substitution.
@@ -712,9 +708,9 @@ pub fn butter(n: usize, wn: f64, btype: &str) -> (Vec<f64>, Vec<f64>, f64) {
     for &(re, im) in &analog_poles {
         let scaled_re = re * warped;
         let scaled_im = im * warped;
-        // Bilinear transform: z = (1 + s/2) / (1 - s/2)
-        let sr = scaled_re / 2.0;
-        let si = scaled_im / 2.0;
+        // Bilinear transform: z = (1 + s) / (1 - s) where s is normalized to fs2
+        let sr = scaled_re;
+        let si = scaled_im;
         let num_re = 1.0 + sr;
         let num_im = si;
         let den_re = 1.0 - sr;

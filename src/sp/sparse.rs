@@ -22,6 +22,22 @@ impl COOMatrix {
         }
     }
 
+    pub fn empty(shape: (usize, usize)) -> Self {
+        Self {
+            data: Vec::new(),
+            row: Vec::new(),
+            col: Vec::new(),
+            shape,
+        }
+    }
+
+    pub fn add_entry(&mut self, r: usize, c: usize, v: f64) {
+        assert!(r < self.shape.0 && c < self.shape.1, "Index out of bounds");
+        self.row.push(r);
+        self.col.push(c);
+        self.data.push(v);
+    }
+
     pub fn from_dense(mat: &Array2<f64>) -> Self {
         let (nrows, ncols) = mat.dim();
         let mut data = Vec::new();

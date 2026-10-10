@@ -236,6 +236,9 @@ impl GMM {
             if n_c > 0.0 {
                 outer.mapv_inplace(|v| v / n_c);
             }
+            for a in 0..d {
+                outer[[a, a]] += 1e-6;
+            }
 
             for a in 0..d {
                 for b in 0..d {

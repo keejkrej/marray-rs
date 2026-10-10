@@ -154,6 +154,9 @@ pub fn erfinv(p: f64) -> f64 {
 
 /// Error function using Horner form rational approximation.
 pub fn erf(x: f64) -> f64 {
+    if x == 0.0 {
+        return 0.0;
+    }
     let sign = if x < 0.0 { -1.0 } else { 1.0 };
     let x = x.abs();
 
@@ -385,9 +388,16 @@ pub fn comb(n: u64, k: u64) -> f64 {
     if k == 0 || k == n {
         return 1.0;
     }
-    // Use symmetry to minimize operations
     let k = if k > n - k { n - k } else { k };
-    (factorialln(n) - factorialln(k) - factorialln(n - k)).exp()
+    if n <= 60 {
+        let mut res: u128 = 1;
+        for i in 1..=k {
+            res = res * ((n - k + i) as u128) / (i as u128);
+        }
+        res as f64
+    } else {
+        (factorialln(n) - factorialln(k) - factorialln(n - k)).exp().round()
+    }
 }
 
 /// Permutation P(n, k) = n! / (n - k)! as f64.
@@ -395,7 +405,18 @@ pub fn perm(n: u64, k: u64) -> f64 {
     if k > n {
         return 0.0;
     }
-    (factorialln(n) - factorialln(n - k)).exp()
+    if k == 0 {
+        return 1.0;
+    }
+    if n <= 20 {
+        let mut res: u128 = 1;
+        for i in 0..k {
+            res *= (n - i) as u128;
+        }
+        res as f64
+    } else {
+        (factorialln(n) - factorialln(n - k)).exp().round()
+    }
 }
 
 /// Pochhammer symbol (rising factorial) (x)_n = Γ(x + n) / Γ(x).
