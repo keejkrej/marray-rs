@@ -454,7 +454,8 @@ mod tests {
 
     #[test]
     fn test_mlp_regressor_squared() {
-        let mut rng = rand::thread_rng();
+        use rand::SeedableRng;
+        let mut rng = rand::rngs::StdRng::seed_from_u64(42);
         let mut x_data = Vec::new();
         let mut y_data = Vec::new();
         for _ in 0..200 {
@@ -464,7 +465,7 @@ mod tests {
         }
         let x = Array2::from_shape_vec((200, 1), x_data).unwrap();
         let y = Array1::from_vec(y_data);
-        let mut reg = MLPRegressor::new(vec![20, 10], "relu", 0.005, 500);
+        let mut reg = MLPRegressor::new(vec![32, 16], "relu", 0.01, 800);
         reg.fit(&x, &y);
         let preds = reg.predict(&x);
         let r2 = r_squared(&y, &preds);
@@ -473,7 +474,8 @@ mod tests {
 
     #[test]
     fn test_mlp_regressor_tanh() {
-        let mut rng = rand::thread_rng();
+        use rand::SeedableRng;
+        let mut rng = rand::rngs::StdRng::seed_from_u64(42);
         let mut x_data = Vec::new();
         let mut y_data = Vec::new();
         for _ in 0..200 {

@@ -184,3 +184,114 @@ impl AdditiveNGram {
         })
     }
 }
+
+/// Interpolated Kneser-Ney smoothed N-gram model.
+pub struct KneserNeyNGram {
+    base: NGramBase,
+    d: f64,
+}
+
+impl KneserNeyNGram {
+    /// Create a new Kneser-Ney smoothed N-gram model with discount `d` (default 0.75).
+    pub fn new(n: usize, d: f64) -> Self {
+        Self {
+            base: NGramBase {
+                n,
+                counts: Vec::new(),
+                n_words: Vec::new(),
+                n_tokens: Vec::new(),
+            },
+            d: d.clamp(0.01, 0.99),
+        }
+    }
+
+    /// Train the model.
+    pub fn train(&mut self, corpus: &[Vec<usize>]) {
+        self.base.train(corpus);
+    }
+
+    fn kn_prob(&self, gram: &[usize]) -> f64 {
+        let k = gram.len();
+        if k <= 1 {
+            let w = gram[0];
+            if self.base.counts.len() >= 2 {
+                let bigrams = &self.base.counts[1];
+                let mut continuation_count = 0;
+                let mut total_continuation = 0;
+                for (bg, &cnt) in bigrams.iter() {
+                    if cnt > 0 {
+                        total_continuation += 1;
+                        if bg[1] == w {
+                            continuation_count += 1;
+                        }
+                    }
+                }
+                if total_continuation > 0 {
+                    return (continuation_count as f64).max(0.1) / total_continuation as f64;
+                }
+            }
+            let count = if !self.base.counts.is_empty() {
+                *self.base.counts[0].get(gram).unwrap_or(&0) as f64
+            } else {
+                0.0
+            };
+            let total = self.base.n_words.get(1).copied().unwrap_or(1) as f64;
+            (count + 0.1) / (total + 1.0)
+        } else {
+            let context = &gram[..k - 1];
+            let c_cw = *self.base.counts[k - 1].get(gram).unwrap_or(&0) as f64;
+            let c_c = *self.base.counts[k - 2].get(&context.to_vec()).unwrap_or(&0) as f64;
+
+            let p_lower = self.kn_prob(&gram[1..]);
+
+            if c_c > 0.0 {
+                let unique_completions = self.base.counts[k - 1]
+                    .keys()
+                    .filter(|key| key.starts_with(context))
+                    .count() as f64;
+
+                let lambda = (self.d / c_c) * unique_completions;
+                let direct = (c_cw - self.d).max(0.0) / c_c;
+                direct + lambda * p_lower
+            } else {
+                p_lower
+            }
+        }
+    }
+
+    /// Log probability.
+    pub fn log_prob(&self, words: &[usize], n: usize) -> Result<f64, String> {
+        self.base.log_prob(words, n, &|gram, _base| {
+            self.kn_prob(gram).max(1e-15).ln()
+        })
+    }
+
+    /// Perplexity.
+    pub fn perplexity(&self, words: &[usize], n: usize) -> Result<f64, String> {
+        self.base.perplexity(words, n, &|gram, _base| {
+            self.kn_prob(gram).max(1e-15).ln()
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_kneser_ney_ngram() {
+        let corpus = vec![
+            vec![0, 1, 2],
+            vec![0, 1, 1],
+            vec![0, 2, 1],
+        ];
+
+        let mut model = KneserNeyNGram::new(2, 0.75);
+        model.train(&corpus);
+
+        let pp = model.perplexity(&vec![0, 1, 2], 2).unwrap();
+        assert!(pp.is_finite());
+        assert!(pp > 0.0);
+    }
+}
+

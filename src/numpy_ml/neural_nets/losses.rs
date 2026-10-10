@@ -118,6 +118,23 @@ impl VAELoss {
             -0.5 * (1.0 + t_log_var - t_mean.mapv(|v| v * v) - t_log_var.mapv(|v| v.exp())).sum();
         (rec_loss + kl_loss) / y.nrows() as f64
     }
+
+    /// Compute gradients of the VAE loss with respect to y_pred, t_log_var, and t_mean.
+    pub fn grad(
+        &self,
+        y: &Array2<f64>,
+        y_pred: &Array2<f64>,
+        t_mean: &Array2<f64>,
+        t_log_var: &Array2<f64>,
+    ) -> (Array2<f64>, Array2<f64>, Array2<f64>) {
+        let n = y.nrows() as f64;
+        let eps = f64::EPSILON;
+        let y_pred_clipped = y_pred.mapv(|v| v.max(eps).min(1.0 - eps));
+        let dy_pred = -y / (n * &y_pred_clipped) - (y - 1.0) / (n - n * &y_pred_clipped);
+        let d_log_var = (&t_log_var.mapv(|v| v.exp()) - 1.0) / (2.0 * n);
+        let d_mean = t_mean / n;
+        (dy_pred, d_log_var, d_mean)
+    }
 }
 
 /// Create a loss function by name string.
