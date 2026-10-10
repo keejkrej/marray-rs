@@ -21,3 +21,7 @@ sp = []
 sklearn = []
 skimage = ["dep:image", "dep:imageproc"]
 numpy_ml = []
+
+[dev-dependencies]
+serde_json = "1.0"
+

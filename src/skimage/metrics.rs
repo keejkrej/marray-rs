@@ -10,6 +10,8 @@ pub fn psnr(image1: &Array2<f64>, image2: &Array2<f64>, max_val: f64) -> f64 {
     10.0 * (max_val * max_val / mse).log10()
 }
 
+pub use psnr as peak_signal_noise_ratio;
+
 /// Structural similarity index between two images using a sliding window.
 /// Returns mean SSIM over all valid window positions.
 pub fn structural_similarity(image1: &Array2<f64>, image2: &Array2<f64>, window_size: usize) -> f64 {

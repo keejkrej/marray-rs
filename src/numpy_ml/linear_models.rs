@@ -376,6 +376,27 @@ impl RidgeRegression {
     }
 }
 
+/// Linear regression with ordinary least squares fit via normal equations.
+pub struct LinearRegression {
+    inner: RidgeRegression,
+}
+
+impl LinearRegression {
+    pub fn new(fit_intercept: bool) -> Self {
+        Self {
+            inner: RidgeRegression::new(0.0, fit_intercept),
+        }
+    }
+
+    pub fn fit(&mut self, x: &Array2<f64>, y: &Array1<f64>) -> Result<(), String> {
+        self.inner.fit(x, y)
+    }
+
+    pub fn predict(&self, x: &Array2<f64>) -> Result<Array1<f64>, String> {
+        self.inner.predict(x)
+    }
+}
+
 /// Binary logistic regression fit via gradient descent on penalized negative log likelihood.
 pub struct LogisticRegression {
     pub penalty: String,

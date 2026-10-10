@@ -587,6 +587,256 @@ pub fn percentile(arr: &Array1<f64>, q: f64) -> f64 {
     }
 }
 
+/// Return a new array of given shape and type, filled with fill_value.
+pub fn full<T: Clone, Sh>(shape: Sh, fill_value: T) -> Array<T, Sh::Dim>
+where
+    Sh: ndarray::ShapeBuilder,
+{
+    Array::from_elem(shape, fill_value)
+}
+
+/// Return a full array with the same shape and type as a given array.
+pub fn full_like<T: Clone, D: Dimension>(arr: &Array<T, D>, fill_value: T) -> Array<T, D> {
+    Array::from_elem(arr.raw_dim(), fill_value)
+}
+
+/// Return numbers spaced evenly on a log scale.
+pub fn logspace(start: f64, stop: f64, num: usize, base: f64) -> Array1<f64> {
+    let exponents = linspace(start, stop, num);
+    exponents.mapv(|exp| base.powf(exp))
+}
+
+/// Return numbers spaced evenly on a log scale (geometric progression).
+pub fn geomspace(start: f64, stop: f64, num: usize) -> Array1<f64> {
+    assert!(start > 0.0 && stop > 0.0, "geomspace bounds must be strictly positive");
+    let log_start = start.ln();
+    let log_stop = stop.ln();
+    let lin = linspace(log_start, log_stop, num);
+    lin.mapv(|x| x.exp())
+}
+
+/// Returns True if two arrays are element-wise equal within a tolerance.
+pub fn allclose<D: Dimension>(a: &Array<f64, D>, b: &Array<f64, D>, rtol: f64, atol: f64) -> bool {
+    if a.shape() != b.shape() {
+        return false;
+    }
+    a.iter().zip(b.iter()).all(|(&x, &y)| {
+        if x.is_nan() || y.is_nan() {
+            return false;
+        }
+        (x - y).abs() <= (atol + rtol * y.abs())
+    })
+}
+
+/// Returns a boolean array where two arrays are element-wise equal within a tolerance.
+pub fn isclose<D: Dimension>(a: &Array<f64, D>, b: &Array<f64, D>, rtol: f64, atol: f64) -> Array<bool, D> {
+    assert_eq!(a.shape(), b.shape(), "Shapes must match for isclose");
+    let mut out = Array::from_elem(a.raw_dim(), false);
+    for ((&x, &y), out_val) in a.iter().zip(b.iter()).zip(out.iter_mut()) {
+        *out_val = (x - y).abs() <= (atol + rtol * y.abs());
+    }
+    out
+}
+
+/// Test whether all array elements evaluate to True.
+pub fn all<D: Dimension>(arr: &Array<bool, D>) -> bool {
+    arr.iter().all(|&v| v)
+}
+
+/// Test whether any array elements evaluate to True.
+pub fn any<D: Dimension>(arr: &Array<bool, D>) -> bool {
+    arr.iter().any(|&v| v)
+}
+
+/// Extract a diagonal or construct a diagonal array.
+pub fn diag(arr: &Array2<f64>, k: i32) -> Array1<f64> {
+    let (nrows, ncols) = arr.dim();
+    let mut diag_vals = Vec::new();
+    for i in 0..nrows {
+        let j = (i as i32) + k;
+        if j >= 0 && (j as usize) < ncols {
+            diag_vals.push(arr[[i, j as usize]]);
+        }
+    }
+    Array1::from_vec(diag_vals)
+}
+
+/// Create a two-dimensional array with the flattened input as a diagonal.
+pub fn diagflat(v: &Array1<f64>, k: i32) -> Array2<f64> {
+    let n = v.len();
+    let offset = k.abs() as usize;
+    let size = n + offset;
+    let mut out = Array2::zeros((size, size));
+    for (idx, &val) in v.iter().enumerate() {
+        if k >= 0 {
+            out[[idx, idx + offset]] = val;
+        } else {
+            out[[idx + offset, idx]] = val;
+        }
+    }
+    out
+}
+
+/// Return the sum along diagonals of the array.
+pub fn trace(arr: &Array2<f64>) -> f64 {
+    let min_dim = arr.nrows().min(arr.ncols());
+    let mut sum = 0.0;
+    for i in 0..min_dim {
+        sum += arr[[i, i]];
+    }
+    sum
+}
+
+/// Compute the outer product of two vectors.
+pub fn outer(a: &Array1<f64>, b: &Array1<f64>) -> Array2<f64> {
+    let n = a.len();
+    let m = b.len();
+    let mut out = Array2::zeros((n, m));
+    for i in 0..n {
+        for j in 0..m {
+            out[[i, j]] = a[i] * b[j];
+        }
+    }
+    out
+}
+
+/// Inner product of two arrays.
+pub fn inner(a: &Array1<f64>, b: &Array1<f64>) -> f64 {
+    dot(a, b)
+}
+
+/// Return Pearson product-moment correlation coefficients.
+pub fn corrcoef(m: &Array2<f64>) -> Result<Array2<f64>, String> {
+    let c = cov(m)?;
+    let (n, _) = c.dim();
+    let mut r = Array2::zeros((n, n));
+    let diag_std: Vec<f64> = (0..n).map(|i| c[[i, i]].sqrt()).collect();
+    for i in 0..n {
+        for j in 0..n {
+            let denom = diag_std[i] * diag_std[j];
+            if denom > 1e-12 {
+                r[[i, j]] = (c[[i, j]] / denom).clamp(-1.0, 1.0);
+            } else {
+                r[[i, j]] = if i == j { 1.0 } else { 0.0 };
+            }
+        }
+    }
+    Ok(r)
+}
+
+/// Roll array elements along a given axis.
+pub fn roll(arr: &Array1<f64>, shift: isize) -> Array1<f64> {
+    let n = arr.len();
+    if n == 0 {
+        return arr.clone();
+    }
+    let shift_norm = ((shift % (n as isize)) + (n as isize)) as usize % n;
+    let mut out = Array1::zeros(n);
+    for i in 0..n {
+        let new_idx = (i + shift_norm) % n;
+        out[new_idx] = arr[i];
+    }
+    out
+}
+
+/// Reverse the order of elements in an array.
+pub fn flip(arr: &Array1<f64>) -> Array1<f64> {
+    let mut v = arr.to_vec();
+    v.reverse();
+    Array1::from_vec(v)
+}
+
+/// Pad an array with constant values.
+pub fn pad(arr: &Array1<f64>, pad_width: (usize, usize), constant_value: f64) -> Array1<f64> {
+    let (left, right) = pad_width;
+    let mut v = Vec::with_capacity(left + arr.len() + right);
+    v.extend(std::iter::repeat_n(constant_value, left));
+    v.extend(arr.iter().copied());
+    v.extend(std::iter::repeat_n(constant_value, right));
+    Array1::from_vec(v)
+}
+
+/// Remove single-dimensional entries from the shape of an array.
+pub fn squeeze(arr: &Array2<f64>) -> Array1<f64> {
+    let (r, c) = arr.dim();
+    if r == 1 {
+        arr.row(0).to_owned()
+    } else if c == 1 {
+        arr.column(0).to_owned()
+    } else {
+        panic!("squeeze: at least one dimension must be 1, got shape {:?}", arr.dim());
+    }
+}
+
+/// Return a contiguous flattened 1D array.
+pub fn ravel(arr: &Array2<f64>) -> Array1<f64> {
+    let mut v = Vec::with_capacity(arr.len());
+    for row in arr.rows() {
+        v.extend(row.iter().copied());
+    }
+    Array1::from_vec(v)
+}
+
+/// Return a flattened copy of the array.
+pub fn flatten(arr: &Array2<f64>) -> Array1<f64> {
+    ravel(arr)
+}
+
+/// Return a sorted copy of an array (alias for rssort).
+pub fn sort<T: Clone + PartialOrd>(arr: &Array1<T>) -> Array1<T> {
+    rssort(arr)
+}
+
+/// Element-wise maximum of array elements.
+pub fn maximum<D: Dimension>(a: &Array<f64, D>, b: &Array<f64, D>) -> Array<f64, D> {
+    assert_eq!(a.shape(), b.shape(), "Shapes must match for maximum");
+    let mut out = Array::zeros(a.raw_dim());
+    for ((&x, &y), out_val) in a.iter().zip(b.iter()).zip(out.iter_mut()) {
+        *out_val = x.max(y);
+    }
+    out
+}
+
+/// Element-wise minimum of array elements.
+pub fn minimum<D: Dimension>(a: &Array<f64, D>, b: &Array<f64, D>) -> Array<f64, D> {
+    assert_eq!(a.shape(), b.shape(), "Shapes must match for minimum");
+    let mut out = Array::zeros(a.raw_dim());
+    for ((&x, &y), out_val) in a.iter().zip(b.iter()).zip(out.iter_mut()) {
+        *out_val = x.min(y);
+    }
+    out
+}
+
+/// Round elements of the array to the nearest integer.
+pub fn round<D: Dimension>(arr: &Array<f64, D>) -> Array<f64, D> {
+    arr.mapv(|x| x.round())
+}
+
+/// Return the floor of the input, element-wise.
+pub fn floor<D: Dimension>(arr: &Array<f64, D>) -> Array<f64, D> {
+    arr.mapv(|x| x.floor())
+}
+
+/// Return the ceiling of the input, element-wise.
+pub fn ceil<D: Dimension>(arr: &Array<f64, D>) -> Array<f64, D> {
+    arr.mapv(|x| x.ceil())
+}
+
+/// Return coordinate matrices from coordinate vectors.
+pub fn meshgrid(x: &Array1<f64>, y: &Array1<f64>) -> (Array2<f64>, Array2<f64>) {
+    let nx = x.len();
+    let ny = y.len();
+    let mut xx = Array2::zeros((ny, nx));
+    let mut yy = Array2::zeros((ny, nx));
+    for j in 0..ny {
+        for i in 0..nx {
+            xx[[j, i]] = x[i];
+            yy[[j, i]] = y[j];
+        }
+    }
+    (xx, yy)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -330,6 +330,9 @@ pub fn norm_ppf(p: f64) -> f64 {
     if p >= 1.0 {
         return f64::INFINITY;
     }
+    if p == 0.5 {
+        return 0.0;
+    }
     let t: f64;
     if p < 0.5 {
         t = (-2.0 * p.ln()).sqrt();
