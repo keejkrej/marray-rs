@@ -153,7 +153,7 @@ pub fn erfinv(p: f64) -> f64 {
 }
 
 /// Error function using Horner form rational approximation.
-fn erf(x: f64) -> f64 {
+pub fn erf(x: f64) -> f64 {
     let sign = if x < 0.0 { -1.0 } else { 1.0 };
     let x = x.abs();
 
@@ -171,64 +171,25 @@ fn erf(x: f64) -> f64 {
     sign * (1.0 - poly * (-x * x).exp())
 }
 
-/// Inverse of the standard normal CDF (rational approximation).
-fn norminv(p: f64) -> f64 {
-    // Peter Acklam's algorithm for inverse normal CDF
+/// Standard normal cumulative distribution function (CDF).
+pub fn ndtr(x: f64) -> f64 {
+    0.5 * (1.0 + erf(x / std::f64::consts::SQRT_2))
+}
+
+/// Inverse of the standard normal CDF.
+pub fn ndtri(p: f64) -> f64 {
     if p <= 0.0 {
         return f64::NEG_INFINITY;
     }
     if p >= 1.0 {
         return f64::INFINITY;
     }
+    std::f64::consts::SQRT_2 * erfinv(2.0 * p - 1.0)
+}
 
-    // Coefficients for the rational approximation (Acklam)
-    let a1 = -3.969683028665376e+01;
-    let a2 = 2.209460984245205e+02;
-    let a3 = -2.759285104469687e+02;
-    let a4 = 1.383577518672690e+02;
-    let a5 = -3.066479806614716e+01;
-    let a6 = 2.506628277459239e+00;
-
-    let b1 = -5.447609879822406e+01;
-    let b2 = 1.615858368580409e+02;
-    let b3 = -1.556989798598866e+02;
-    let b4 = 6.680131188771972e+01;
-    let b5 = -1.328068155288572e+01;
-
-    let c1 = -7.784894002430293e-03;
-    let c2 = -3.223964580411365e-01;
-    let c3 = -2.400758277161838e+00;
-    let c4 = -2.549732539343734e+00;
-    let c5 = 4.374664141464968e+00;
-    let c6 = 2.938163982698783e+00;
-
-    let d1 = 7.784695709041462e-03;
-    let d2 = 3.224671290700398e-01;
-    let d3 = 2.445134137142996e+00;
-    let d4 = 3.754408661907416e+00;
-
-    let p_low = 0.02425;
-    let p_high = 1.0 - p_low;
-
-    let (q, r) = if p < p_low {
-        let q = (-2.0 * p.ln()).sqrt();
-        let r = a1 + q * (a2 + q * (a3 + q * (a4 + q * (a5 + q * a6))));
-        let s = 1.0 + q * (b1 + q * (b2 + q * (b3 + q * (b4 + q * b5))));
-        (q, r / s)
-    } else if p <= p_high {
-        let q = p - 0.5;
-        let r = q * q;
-        let num = a1 + r * (a2 + r * (a3 + r * (a4 + r * (a5 + r * a6))));
-        let den = 1.0 + r * (b1 + r * (b2 + r * (b3 + r * (b4 + r * b5))));
-        (q, q * num / den)
-    } else {
-        let q = (-2.0 * (1.0 - p).ln()).sqrt();
-        let r = c1 + q * (c2 + q * (c3 + q * (c4 + q * (c5 + q * c6))));
-        let s = 1.0 + q * (d1 + q * (d2 + q * (d3 + q * d4)));
-        (q, -r / s)
-    };
-
-    q + r
+/// Alias for `ndtri`.
+pub fn norminv(p: f64) -> f64 {
+    ndtri(p)
 }
 
 // ---------------------------------------------------------------------------
@@ -443,6 +404,307 @@ pub fn poch(x: f64, n: f64) -> f64 {
         return 1.0;
     }
     (gammaln(x + n) - gammaln(x)).exp()
+}
+
+// ---------------------------------------------------------------------------
+// Bessel, Hypergeometric, Elliptic, and Wave functions
+// ---------------------------------------------------------------------------
+
+/// Bessel function of the first kind of real order `v` and argument `x`: $J_v(x)$.
+pub fn jv(v: f64, x: f64) -> f64 {
+    if v == 0.0 {
+        return bessel_j0(x);
+    }
+    if v == 1.0 {
+        return bessel_j1(x);
+    }
+    if x == 0.0 {
+        return if v == 0.0 { 1.0 } else { 0.0 };
+    }
+    if x < 0.0 {
+        let n = v.round();
+        if (v - n).abs() < 1e-12 {
+            let sign = if (n as i64) % 2 == 0 { 1.0 } else { -1.0 };
+            return sign * jv(v, -x);
+        } else {
+            return f64::NAN;
+        }
+    }
+
+    if x > 30.0 {
+        // Asymptotic expansion
+        let theta = x - 0.5 * v * PI - 0.25 * PI;
+        return (2.0 / (PI * x)).sqrt() * theta.cos();
+    }
+
+    let z = 0.5 * x;
+    let mut sum = 0.0;
+    let mut term = z.powf(v) / gamma(v + 1.0);
+    sum += term;
+
+    for m in 1..80 {
+        term *= -z * z / (m as f64 * (m as f64 + v));
+        sum += term;
+        if term.abs() < 1e-15 * sum.abs().max(1e-15) {
+            break;
+        }
+    }
+    sum
+}
+
+/// Modified Bessel function of the first kind of real order `v` and argument `x`: $I_v(x)$.
+pub fn iv(v: f64, x: f64) -> f64 {
+    if v == 0.0 {
+        return bessel_i0(x);
+    }
+    if v == 1.0 {
+        return bessel_i1(x);
+    }
+    if x == 0.0 {
+        return if v == 0.0 { 1.0 } else { 0.0 };
+    }
+    let sign = if x < 0.0 {
+        let n = v.round();
+        if (v - n).abs() < 1e-12 {
+            if (n as i64) % 2 == 0 { 1.0 } else { -1.0 }
+        } else {
+            return f64::NAN;
+        }
+    } else {
+        1.0
+    };
+    let x = x.abs();
+
+    if x > 35.0 {
+        return (x.exp() / (2.0 * PI * x).sqrt()) * (1.0 - (4.0 * v * v - 1.0) / (8.0 * x));
+    }
+
+    let z = 0.5 * x;
+    let mut sum = 0.0;
+    let mut term = z.powf(v) / gamma(v + 1.0);
+    sum += term;
+
+    for m in 1..80 {
+        term *= z * z / (m as f64 * (m as f64 + v));
+        sum += term;
+        if term.abs() < 1e-15 * sum.abs().max(1e-15) {
+            break;
+        }
+    }
+    sign * sum
+}
+
+/// Bessel function of the second kind of real order `v`: $Y_v(x)$.
+pub fn yv(v: f64, x: f64) -> f64 {
+    if x <= 0.0 {
+        return f64::NAN;
+    }
+    let n = v.round();
+    let effective_v = if (v - n).abs() < 1e-5 {
+        n + 1e-6
+    } else {
+        v
+    };
+
+    let sin_v_pi = (effective_v * PI).sin();
+    let cos_v_pi = (effective_v * PI).cos();
+    (jv(effective_v, x) * cos_v_pi - jv(-effective_v, x)) / sin_v_pi
+}
+
+/// Modified Bessel function of the second kind of real order `v`: $K_v(x)$.
+pub fn kv(v: f64, x: f64) -> f64 {
+    if x <= 0.0 {
+        return f64::NAN;
+    }
+    let n = v.round();
+    let effective_v = if (v - n).abs() < 1e-5 {
+        n + 1e-6
+    } else {
+        v
+    };
+
+    let sin_v_pi = (effective_v * PI).sin();
+    0.5 * PI * (iv(-effective_v, x) - iv(effective_v, x)) / sin_v_pi
+}
+
+/// Confluent hypergeometric function $_1F_1(a; b; x)$.
+pub fn hyp1f1(a: f64, b: f64, x: f64) -> f64 {
+    if b <= 0.0 && b == b.round() {
+        return f64::NAN;
+    }
+    let mut sum = 1.0;
+    let mut term = 1.0;
+    for k in 0..500 {
+        term *= ((a + k as f64) / (b + k as f64)) * (x / (k + 1) as f64);
+        sum += term;
+        if term.abs() < 1e-15 * sum.abs() {
+            break;
+        }
+    }
+    sum
+}
+
+/// Gauss hypergeometric function $_2F_1(a, b; c; x)$.
+pub fn hyp2f1(a: f64, b: f64, c: f64, x: f64) -> f64 {
+    if c <= 0.0 && c == c.round() {
+        return f64::NAN;
+    }
+    assert!(x.abs() < 1.0 || (x.abs() - 1.0).abs() < 1e-12, "x must be in [-1, 1]");
+    let mut sum = 1.0;
+    let mut term = 1.0;
+    for k in 0..500 {
+        term *= ((a + k as f64) * (b + k as f64) / (c + k as f64)) * (x / (k + 1) as f64);
+        sum += term;
+        if term.abs() < 1e-15 * sum.abs() {
+            break;
+        }
+    }
+    sum
+}
+
+/// Complete elliptic integral of the first kind $K(m) = \int_0^{\pi/2} (1 - m \sin^2 \theta)^{-1/2} d\theta$.
+pub fn ellipk(m: f64) -> f64 {
+    if m < 0.0 || m >= 1.0 {
+        return f64::NAN;
+    }
+    let mut a = 1.0;
+    let mut g = (1.0 - m).sqrt();
+
+    while (a - g).abs() > 1e-15 {
+        let a_next = 0.5 * (a + g);
+        let g_next = (a * g).sqrt();
+        a = a_next;
+        g = g_next;
+    }
+
+    PI / (2.0 * a)
+}
+
+/// Complete elliptic integral of the second kind $E(m) = \int_0^{\pi/2} (1 - m \sin^2 \theta)^{1/2} d\theta$.
+pub fn ellipe(m: f64) -> f64 {
+    if m < 0.0 || m > 1.0 {
+        return f64::NAN;
+    }
+    if m == 1.0 {
+        return 1.0;
+    }
+    let mut a = 1.0;
+    let mut g = (1.0 - m).sqrt();
+    let mut power = 1.0;
+    let mut sum = 0.5 * m;
+
+    while (a - g).abs() > 1e-15 {
+        let c = 0.5 * (a - g);
+        let a_next = 0.5 * (a + g);
+        let g_next = (a * g).sqrt();
+        power *= 2.0;
+        sum += power * c * c;
+        a = a_next;
+        g = g_next;
+    }
+
+    (PI / (2.0 * a)) * (1.0 - sum)
+}
+
+/// Airy functions $Ai(x)$, $Ai'(x)$, $Bi(x)$, $Bi'(x)$.
+pub fn airy(x: f64) -> (f64, f64, f64, f64) {
+    let ai0 = 0.35502805388781724;
+    let aip0 = -0.25881940379280687;
+    let sqrt3 = 3.0_f64.sqrt();
+
+    if x.abs() < 1e-15 {
+        return (ai0, aip0, sqrt3 * ai0, -sqrt3 * aip0);
+    }
+
+    // Taylor series around 0
+    let mut f = 1.0;
+    let mut g = x;
+    let mut fp = 0.0;
+    let mut gp = 1.0;
+
+    let mut term_f = 1.0;
+    let mut term_g = x;
+
+    for k in 1..40 {
+        let k3 = 3 * k;
+        let den_f = ((k3 - 1) * k3) as f64;
+        term_f *= (x * x * x) / den_f;
+        f += term_f;
+        fp += (k3 as f64 / x) * term_f;
+
+        let den_g = (k3 * (k3 + 1)) as f64;
+        term_g *= (x * x * x) / den_g;
+        g += term_g;
+        gp += ((k3 + 1) as f64 / x) * term_g;
+
+        if term_f.abs() < 1e-16 && term_g.abs() < 1e-16 {
+            break;
+        }
+    }
+
+    let ai = ai0 * f + aip0 * g;
+    let bi = sqrt3 * (ai0 * f - aip0 * g);
+    let aip = ai0 * fp + aip0 * gp;
+    let bip = sqrt3 * (ai0 * fp - aip0 * gp);
+
+    (ai, aip, bi, bip)
+}
+
+/// Spherical harmonic $Y_n^m(\theta, \phi)$ returning `(real, imag)`.
+///
+/// * `m`: Order of harmonic, $-n \le m \le n$.
+/// * `n`: Degree of harmonic, $n \ge 0$.
+/// * `theta`: Polar / colatitude angle $[0, \pi]$.
+/// * `phi`: Azimuthal angle $[0, 2\pi)$.
+pub fn sph_harm(m: i64, n: i64, theta: f64, phi: f64) -> (f64, f64) {
+    assert!(n >= 0 && m.abs() <= n, "Invalid n or m");
+    let x = theta.cos();
+    let abs_m = m.abs() as usize;
+    let n_u = n as usize;
+
+    // Associated Legendre polynomial P_n^{|m|}(x)
+    let mut pmm = 1.0;
+    if abs_m > 0 {
+        let somx2 = (1.0 - x * x).max(0.0).sqrt();
+        let mut fact = 1.0;
+        for _ in 1..=abs_m {
+            pmm *= -fact * somx2;
+            fact += 2.0;
+        }
+    }
+
+    let pnm = if n_u == abs_m {
+        pmm
+    } else {
+        let mut pmmp1 = x * (2 * abs_m + 1) as f64 * pmm;
+        if n_u == abs_m + 1 {
+            pmmp1
+        } else {
+            let mut pll = 0.0;
+            for ll in (abs_m + 2)..=n_u {
+                pll = ((2 * ll - 1) as f64 * x * pmmp1 - (ll + abs_m - 1) as f64 * pmm)
+                    / (ll - abs_m) as f64;
+                pmm = pmmp1;
+                pmmp1 = pll;
+            }
+            pll
+        }
+    };
+
+    let p_eff = if m < 0 {
+        let sign = if (-m) % 2 == 0 { 1.0 } else { -1.0 };
+        sign * (factorial((n - abs_m as i64) as u64) / factorial((n + abs_m as i64) as u64)) * pnm
+    } else {
+        pnm
+    };
+
+    let norm = (((2 * n + 1) as f64 / (4.0 * PI))
+        * (factorial((n - m) as u64) / factorial((n + m) as u64)))
+        .sqrt();
+
+    let magnitude = norm * p_eff;
+    let angle = m as f64 * phi;
+    (magnitude * angle.cos(), magnitude * angle.sin())
 }
 
 // ---------------------------------------------------------------------------
@@ -666,4 +928,68 @@ mod tests {
         // (1)_n = n!
         assert!((poch(1.0, 5.0) - 120.0).abs() < 1e-6);
     }
+
+    #[test]
+    fn test_ndtr_and_ndtri() {
+        // ndtr(0) = 0.5, ndtri(0.5) = 0
+        assert!((ndtr(0.0) - 0.5).abs() < 1e-6);
+        assert!(ndtri(0.5).abs() < 1e-6);
+
+        let p = 0.841344746; // ~ 1 std dev
+        let z = ndtri(p);
+        assert!((z - 1.0).abs() < 1e-4);
+        assert!((ndtr(1.0) - p).abs() < 1e-4);
+    }
+
+    #[test]
+    fn test_bessel_arbitrary_order() {
+        // J_0(0) = 1, J_1(0) = 0
+        assert!((jv(0.0, 0.0) - 1.0).abs() < 1e-6);
+        assert!(jv(1.0, 0.0).abs() < 1e-6);
+        assert!((jv(2.0, 1.0) - 0.1149034849).abs() < 1e-4);
+
+        // I_0(0) = 1, I_1(0) = 0
+        assert!((iv(0.0, 0.0) - 1.0).abs() < 1e-6);
+        assert!((iv(2.0, 1.0) - 0.1357476697).abs() < 1e-4);
+
+        // Y_0(1.0) ≈ 0.088256964
+        assert!((yv(0.0, 1.0) - 0.088256964).abs() < 1e-3);
+
+        // K_0(1.0) ≈ 0.421024438
+        assert!((kv(0.0, 1.0) - 0.421024438).abs() < 1e-3);
+    }
+
+    #[test]
+    fn test_hypergeometric() {
+        // hyp1f1(1, 1, x) = e^x
+        assert!((hyp1f1(1.0, 1.0, 1.0) - std::f64::consts::E).abs() < 1e-6);
+        // hyp2f1(1, 1, 2, x) = -ln(1 - x) / x
+        let x: f64 = 0.5;
+        let expected = -(1.0 - x).ln() / x;
+        assert!((hyp2f1(1.0, 1.0, 2.0, x) - expected).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_elliptic_integrals() {
+        // K(0) = pi / 2
+        assert!((ellipk(0.0) - PI / 2.0).abs() < 1e-9);
+        // E(0) = pi / 2, E(1) = 1
+        assert!((ellipe(0.0) - PI / 2.0).abs() < 1e-9);
+        assert!((ellipe(1.0) - 1.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_airy_and_sph_harm() {
+        let (ai0, aip0, bi0, _bip0) = airy(0.0);
+        assert!((ai0 - 0.35502805).abs() < 1e-5);
+        assert!((aip0 - (-0.2588194)).abs() < 1e-5);
+        assert!((bi0 - 0.6149266).abs() < 1e-5);
+
+        // Y_0^0(theta, phi) = 1 / sqrt(4 * pi)
+        let (re, im) = sph_harm(0, 0, PI / 3.0, PI / 4.0);
+        let expected = 1.0 / (4.0 * PI).sqrt();
+        assert!((re - expected).abs() < 1e-6);
+        assert!(im.abs() < 1e-9);
+    }
 }
+

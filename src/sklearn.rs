@@ -12,6 +12,11 @@ pub mod svm;
 pub mod neural_network;
 pub mod pipeline;
 pub mod impute;
+pub mod feature_selection;
+pub mod discriminant_analysis;
+pub mod mixture;
+pub mod gaussian_process;
+pub mod manifold;
 
 #[cfg(test)]
 mod tests {
