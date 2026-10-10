@@ -165,6 +165,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_bayesian_linear_regression_known_variance() {
         let x = array![[1.0], [2.0], [3.0], [4.0]];
         let y = array![3.0, 5.0, 7.0, 9.0];
@@ -178,6 +179,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_bayesian_linear_regression_unknown_variance() {
         let x = array![[1.0], [2.0], [3.0], [4.0]];
         let y = array![3.0, 5.0, 7.0, 9.0];
@@ -191,6 +193,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_generalized_linear_model_identity_link() {
         let x = array![[0.0], [1.0], [2.0], [3.0]];
         let y = array![1.0, 2.0, 3.0, 4.0];

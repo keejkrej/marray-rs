@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use ndarray::{s, Array1, Array2, Array3, Array4};
 use rand::Rng;
 

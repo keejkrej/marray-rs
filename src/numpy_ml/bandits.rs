@@ -1,6 +1,5 @@
 use rand::distributions::{Distribution, WeightedIndex};
 use rand::Rng;
-use std::collections::HashMap;
 
 /// A multi-armed bandit with Bernoulli-distributed arm payoffs.
 pub struct BernoulliBandit {

@@ -1,4 +1,4 @@
-use ndarray::{Array1, Array2};
+use ndarray::Array2;
 use rand::Rng;
 
 /// t-Distributed Stochastic Neighbor Embedding (t-SNE).

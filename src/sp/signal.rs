@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use ndarray::Array1;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

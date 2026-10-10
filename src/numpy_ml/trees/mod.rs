@@ -11,7 +11,7 @@ pub use rf::RandomForest;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ndarray::{array, Array1, Array2};
+    use ndarray::array;
 
     #[test]
     fn test_decision_tree_classifier() {

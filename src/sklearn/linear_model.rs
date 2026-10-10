@@ -148,6 +148,7 @@ pub struct BayesianLinearRegressionUnknownVariance {
     pub posterior_cov: Option<Array2<f64>>,
 }
 
+#[allow(deprecated)]
 impl BayesianLinearRegressionUnknownVariance {
     pub fn new(alpha: f64, beta: f64, mu: f64, prior_cov: Option<Array2<f64>>, fit_intercept: bool) -> Self {
         Self {
@@ -235,6 +236,7 @@ pub struct BayesianLinearRegressionKnownVariance {
     pub posterior_cov: Option<Array2<f64>>,
 }
 
+#[allow(deprecated)]
 impl BayesianLinearRegressionKnownVariance {
     pub fn new(mu: f64, sigma: f64, prior_cov: Option<Array2<f64>>, fit_intercept: bool) -> Self {
         Self {
@@ -314,6 +316,7 @@ pub struct GeneralizedLinearModel {
     pub is_fit: bool,
 }
 
+#[allow(deprecated)]
 impl GeneralizedLinearModel {
     pub fn new(link: &str, fit_intercept: bool, tol: f64, max_iter: usize) -> Self {
         Self {

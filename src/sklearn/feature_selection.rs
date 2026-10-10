@@ -1,4 +1,4 @@
-use ndarray::{Array1, Array2, Axis};
+use ndarray::{Array1, Array2};
 use std::collections::HashMap;
 
 /// ANOVA F-value between features and classification labels.
